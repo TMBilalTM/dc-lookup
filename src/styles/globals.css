@@ -1,0 +1,43 @@
+/* Tailwind CSS base */
+@tailwind base;
+
+/* Tailwind CSS components */
+@tailwind components;
+
+/* Tailwind CSS utilities */
+@tailwind utilities;
+
+/* Custom CSS variables for theme */
+:root {
+  --foreground-rgb: 0, 0, 0; /* Default foreground color (dark) */
+  --background-start-rgb: 214, 219, 220; /* Default light mode background start color */
+  --background-end-rgb: 255, 255, 255; /* Default light mode background end color */
+}
+
+/* Media query for dark mode preference */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255; /* Foreground color in dark mode */
+    --background-start-rgb: 0, 0, 0; /* Dark mode background start color */
+    --background-end-rgb: 0, 0, 0; /* Dark mode background end color */
+  }
+}
+
+/* Body styles */
+body {
+  color: rgb(var(--foreground-rgb)); /* Set text color based on --foreground-rgb */
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb)); /* Gradient background based on --background-start-rgb and --background-end-rgb */
+}
+
+/* Custom utility class */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance; /* Example of a custom utility class */
+  }
+}
+
