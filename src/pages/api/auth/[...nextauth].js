@@ -9,6 +9,7 @@ export default NextAuth({
       clientSecret: process.env.DISCORD_CLIENT_SECRET,
     }),
   ],
+  secret: process.env.DISCORD_CLIENT_SECRET,
   callbacks: {
     async jwt({ token, account }) {
       if (account) {
