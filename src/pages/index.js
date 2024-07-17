@@ -1,7 +1,7 @@
+// pages/index.js
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 
-// Sample function to fetch SVG content (you can adapt this based on your server or API setup)
 async function fetchBadgeSvg(badgeName) {
   try {
     const response = await fetch(`/svg/badges/${badgeName.replace(/\s/g, '-').toLowerCase()}.svg`);
@@ -21,22 +21,22 @@ export default function Home() {
   const [userData, setUserData] = useState(null);
   const [error, setError] = useState(null);
   const [language, setLanguage] = useState('en');
-  const [loading, setLoading] = useState(false); // Buton yükleme durumu
-  const [showModal, setShowModal] = useState(false); // Captcha modal durumu
-  const [captchaNum1, setCaptchaNum1] = useState(0); // Captcha sayıları
+  const [loading, setLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [captchaNum1, setCaptchaNum1] = useState(0);
   const [captchaNum2, setCaptchaNum2] = useState(0);
   const [captchaOperation, setCaptchaOperation] = useState('+');
-  const [captchaInput, setCaptchaInput] = useState(''); // Captcha kullanıcı girişi
-  const [captchaAnswer, setCaptchaAnswer] = useState(0); // Captcha doğru cevap
-  const [manualData, setManualData] = useState(null); // Manuel olarak eklenen veri
+  const [captchaInput, setCaptchaInput] = useState('');
+  const [captchaAnswer, setCaptchaAnswer] = useState(0);
+  const [manualData, setManualData] = useState(null);
+  const [hasNitro, setHasNitro] = useState(false); // State to track if user has Nitro
 
   useEffect(() => {
     const lang = navigator.language || navigator.userLanguage;
     setLanguage(lang.startsWith('tr') ? 'tr' : 'en');
-    fetchSampleUserData(); // Sayfa yüklendiğinde örnek kullanıcı verisi çağır
+    fetchSampleUserData();
   }, []);
 
-  // Örnek kullanıcı verisi çağırma işlevi
   const fetchSampleUserData = async () => {
     try {
       const sampleData = {
@@ -46,7 +46,8 @@ export default function Home() {
         badges: ['Discord Staff'],
         banner_url: 'https://assets-global.website-files.com/5f9072399b2640f14d6a2bf4/611af00d256b9e541fac258f_0_4clCON4Ko2L_PqGi.png',
         created_at: new Date().toISOString(),
-        banner_color: '#abcdef'
+        banner_color: '#abcdef',
+        nitro: true
       };
       setManualData(sampleData);
     } catch (error) {
@@ -55,7 +56,6 @@ export default function Home() {
     }
   };
 
-  // Captcha oluşturma işlevi
   const fetchCaptcha = async () => {
     try {
       const num1 = Math.floor(Math.random() * 10);
@@ -72,7 +72,6 @@ export default function Home() {
     }
   };
 
-  // Captcha doğrulama işlevi
   const handleCaptchaSuccess = async () => {
     if (parseInt(captchaInput) !== captchaAnswer) {
       setError(language === 'tr' ? 'Captcha doğrulaması başarısız.' : 'Captcha verification failed.');
@@ -80,15 +79,15 @@ export default function Home() {
     }
 
     try {
-      setLoading(true); // Buton yükleme durumu
-      setShowModal(false); // Captcha modalini kapat
+      setLoading(true);
+      setShowModal(false);
       const response = await fetch(`/api/lookup?userId=${userId}`);
       if (response.ok) {
         const data = await response.json();
         setUserData(data);
+        setHasNitro(data.has_nitro); // Set hasNitro based on API response
         setError(null);
 
-        // Preload user badges
         if (data && data.badges) {
           await Promise.all(data.badges.map(async (badge) => {
             const svgContent = await fetchBadgeSvg(badge);
@@ -106,7 +105,7 @@ export default function Home() {
       setError(language === 'tr' ? 'Veri alınırken bir hata oluştu.' : 'An error occurred while fetching data.');
       setUserData(null);
     } finally {
-      setLoading(false); // Buton yükleme durumu sıfırla
+      setLoading(false);
     }
   };
 
@@ -114,7 +113,6 @@ export default function Home() {
     return `/svg/badges/${badgeName.replace(/\s/g, '-').toLowerCase()}.svg`;
   };
 
-  // Kullanıcıya gösterilecek ana bileşen
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4">
       <div className="max-w-xl mx-auto text-center">
@@ -172,58 +170,74 @@ export default function Home() {
                     </span>
                   </div>
                 ))}
+                {hasNitro && (
+                  <div className="flex items-center">
+                    <Image
+                      src="/svg/badges/nitro-abonesi.svg"
+                      alt="Nitro Abonesi"
+                      width={24}
+                      height={24}
+                      className="mr-2 rounded-full"
+                      unoptimized
+                    />
+                    <span className="bg-gray-700 text-white px-2 py-1 rounded text-sm whitespace-nowrap">
+                      {language === 'tr' ? 'Nitro Abonesi' : 'Nitro Subscriber'}
+                    </span>
+                  </div>
+                )}
               </div>
             ) : null}
-            {(userData && userData.banner_url) || (manualData && manualData.banner_url) ? (
-              <div className="mb-4">
+            <div className="text-gray-400">
+              {language === 'tr' ? 'Profil oluşturulma tarihi:' : 'Profile Created At:'} {(userData && new Date(userData.created_at).toLocaleDateString()) || (manualData && new Date(manualData.created_at).toLocaleDateString())}
+            </div>
+            <div className="mt-4">
+              {(userData && userData.banner_url) || (manualData && manualData.banner_url) ? (
                 <Image
                   src={(userData && userData.banner_url) || (manualData && manualData.banner_url)}
-                  alt={language === 'tr' ? 'Discord Afiş' : 'Discord Banner'}
+                  alt={language === 'tr' ? 'Discord Banner' : 'Discord Banner'}
+                  layout="responsive"
                   width={600}
                   height={200}
-                  className="rounded"
+                  className="rounded-lg"
                   unoptimized
                 />
-              </div>
-            ) : null}
-            <p className="text-gray-400 mb-2">
-              <span className="font-bold">
-                {language === 'tr' ? 'Oluşturulma Tarihi:' : 'Created:'}
-              </span> {(userData && new Date(userData.created_at).toLocaleString(language)) || (manualData && new Date(manualData.created_at).toLocaleString(language))}
-            </p>
-            {(userData && userData.banner_color) || (manualData && manualData.banner_color) ? (
-              <p className="text-gray-400 mb-2">
-                <span className="font-bold">
-                  {language === 'tr' ? 'Afiş Rengi:' : 'Banner Color:'}
-                </span> 
-                <span style={{ backgroundColor: (userData && userData.banner_color) || (manualData && manualData.banner_color) }} className="ml-2 p-1 rounded">{(userData && userData.banner_color) || (manualData && manualData.banner_color)}</span>
-              </p>
-            ) : null}
-          </div>
-        )}
-        {/* Captcha modal */}
-        {showModal && (
-          <div className="fixed top-0 left-0 w-full h-full bg-gray-900 bg-opacity-50 flex justify-center items-center">
-            <div className="bg-white p-4 rounded-lg shadow-lg">
-              <h2 className="text-gray-700 text-xl font-bold mb-4">{language === 'tr' ? 'Captcha Doğrulaması' : 'Captcha Verification'}</h2>
-              <p className="mb-4 text-gray-700" >{captchaNum1} {captchaOperation} {captchaNum2} = ?</p>
-              <input
-                type="number"
-                onChange={(e) => setCaptchaInput(e.target.value)}
-                className="text-gray-700 w-full p-2 mb-4 bg-gray-100 border border-gray-300 rounded"
-              />
-              <div className="flex justify-end">
-                <button
-                  onClick={handleCaptchaSuccess}
-                  className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded"
-                >
-                  {language === 'tr' ? 'Onayla' : 'Confirm'}
-                </button>
-              </div>
+              ) : null}
             </div>
           </div>
         )}
       </div>
+
+      {/* Captcha modal */}
+      {showModal && (
+        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-gray-800 p-6 rounded-lg shadow-lg max-w-xs w-full">
+            <h2 className="text-xl font-bold mb-4">{language === 'tr' ? 'Captcha Doğrulaması' : 'Captcha Verification'}</h2>
+            <p className="text-gray-400 mb-4">
+              {captchaNum1} {captchaOperation} {captchaNum2} = ?
+            </p>
+            <input
+              type="number"
+              onChange={(e) => setCaptchaInput(e.target.value)}
+              placeholder={language === 'tr' ? 'Sonucu girin' : 'Enter the result'}
+              className="w-full p-2 mb-4 bg-gray-700 border border-gray-600 rounded"
+            />
+            <div className="flex justify-end">
+              <button
+                onClick={handleCaptchaSuccess}
+                className="bg-green-600 hover:bg-green-700 p-2 rounded text-white font-bold mr-2"
+              >
+                {language === 'tr' ? 'Doğrula' : 'Verify'}
+              </button>
+              <button
+                onClick={() => setShowModal(false)}
+                className="bg-red-600 hover:bg-red-700 p-2 rounded text-white font-bold"
+              >
+                {language === 'tr' ? 'İptal' : 'Cancel'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

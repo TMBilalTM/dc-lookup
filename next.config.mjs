@@ -4,7 +4,6 @@
 const nextConfig = {
   reactStrictMode: true,
 
-  // Configure Next.js image optimization
   images: {
     domains: ['cdn.discordapp.com'],
   },

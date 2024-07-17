@@ -9,15 +9,18 @@ export default async function handler(req, res) {
   }
 
   try {
+    const userToken = process.env.DISCORD_BOT_TOKEN;
+
     const userResponse = await fetch(`https://discord.com/api/v10/users/${userId}`, {
       headers: {
-        Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}`,
+        Authorization: `${userToken}`,
       },
     });
 
     if (userResponse.ok) {
       const userData = await userResponse.json();
-      const defaultAvatarUrl = 'https://cdn.discordapp.com/embed/avatars/0.png'; // Varsayılan avatar URL'si
+      console.log(userData)
+      const defaultAvatarUrl = 'https://cdn.discordapp.com/embed/avatars/0.png';
 
       const avatarUrl = userData.avatar
         ? `https://cdn.discordapp.com/avatars/${userId}/${userData.avatar}.${userData.avatar.startsWith('a_') ? 'gif' : 'png'}?size=256`
@@ -29,12 +32,10 @@ export default async function handler(req, res) {
 
       const createdAt = new Date((userId / 4194304) + 1420070400000).toISOString();
       const bannerColor = userData.accent_color ? `#${userData.accent_color.toString(16)}` : null;
-
-      // Rozetler
       const flags = userData.public_flags;
       const badgeIcons = [];
       const badgeNames = [];
-
+      let hasNitro = false;
       if (flags & 1) {
         badgeNames.push('Discord Staff');
         badgeIcons.push(getBadgeSvg('discord-staff.svg'));
@@ -96,19 +97,13 @@ export default async function handler(req, res) {
         badgeIcons.push(getBadgeSvg('automod.svg'));
       }
 
-      // Nitro kontrolü
-      if (userData.premium_type === 1 || userData.premium_type === 2) {
-        badgeNames.push('Nitro Abonesi');
-        badgeIcons.push(getBadgeSvg('nitro-abonesi.svg'));
-      }
 
-      // Avatar Dekorasyonları
-      const avatarDecorations = userData.avatar_decoration_data ? userData.avatar_decoration_data : null;
 
-      // Sunucu Booster kontrolü
-      const guildsResponse = await fetch(`https://discord.com/api/v9/users/@me/guilds`, {
+      const avatarDecorations = userData.avatar_decoration_data || null;
+
+      const guildsResponse = await fetch(`https://discord.com/api/v10/users/@me/guilds`, {
         headers: {
-          Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}`,
+          Authorization: `${process.env.DISCORD_BOT_TOKEN}`,
         },
       });
 
@@ -116,7 +111,7 @@ export default async function handler(req, res) {
 
       const boostedGuilds = [];
       for (const guild of guilds) {
-        const guildMemberResponse = await fetch(`https://discord.com/api/v9/guilds/${guild.id}/members/${userId}`, {
+        const guildMemberResponse = await fetch(`https://discord.com/api/v10/guilds/${guild.id}/members/${userId}`, {
           headers: {
             Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}`,
           },
@@ -134,10 +129,18 @@ export default async function handler(req, res) {
         badgeNames.push('Sunucu Booster');
         badgeIcons.push(getBadgeSvg('server-booster.svg'));
       }
+      if ((userData.avatar && userData.avatar.startsWith('a_')) || userData.banner) {
+        if (userData.bot === true) {
+          hasNitro = false;
+        } else {
+          hasNitro = true;
+        }
+      }
 
       res.status(200).json({
         id: userId,
-        username: `${userData.username}`,
+        username: userData.username,
+        premium_type: userData.premium_type,
         avatar_url: avatarUrl,
         banner_url: bannerUrl,
         created_at: createdAt,
@@ -147,11 +150,13 @@ export default async function handler(req, res) {
         avatar_decorations: avatarDecorations,
         guilds,
         boosted_guilds: boostedGuilds,
+        has_nitro: hasNitro
       });
     } else {
       res.status(userResponse.status).json({ error: userResponse.statusText });
     }
   } catch (error) {
+    console.error('Error fetching user data:', error);
     res.status(500).json({ error: 'Sunucu İç Hatası' });
   }
 }

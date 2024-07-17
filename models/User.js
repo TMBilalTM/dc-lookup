@@ -1,8 +1,7 @@
 // models/User.js
 
 import { DataTypes } from 'sequelize';
-import sequelize from '@/../utils/db'; // Sequelize bağlantısı
-
+import sequelize from '@/../utils/db';
 const User = sequelize.define('user', {
   id: {
     type: DataTypes.INTEGER,
@@ -16,7 +15,7 @@ const User = sequelize.define('user', {
   email: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true // Email adresinin benzersiz olması gerektiğini belirtiyoruz
+    unique: true
   },
   password: {
     type: DataTypes.STRING,
@@ -24,11 +23,11 @@ const User = sequelize.define('user', {
   },
   created_at: {
     type: DataTypes.DATE,
-    defaultValue: sequelize.literal('CURRENT_TIMESTAMP'), // current_timestamp() yerine literal olarak CURRENT_TIMESTAMP kullanıyoruz
+    defaultValue: sequelize.literal('CURRENT_TIMESTAMP'),
     allowNull: false
   }
 }, {
-  timestamps: false, // Sequelize tarafından otomatik olarak oluşturulan createdAt ve updatedAt sütunlarını devre dışı bırakıyoruz
+  timestamps: false,
 });
 export const getUserByEmail = async (email) => {
   try {

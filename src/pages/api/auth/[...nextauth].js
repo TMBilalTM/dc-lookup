@@ -28,7 +28,7 @@ export default NextAuth({
             },
           });
 
-          const badges = response.data.user.flags; // Assuming flags represent badges
+          const badges = response.data.user.flags; 
 
           session.user.discordBadges = badges;
         } catch (error) {
