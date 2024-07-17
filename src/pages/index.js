@@ -1,60 +1,10 @@
+// pages/index.js
 import { signIn, signOut, useSession } from 'next-auth/react';
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
-import { config } from 'dotenv';
-
-config(); // dotenv'in yüklenmesi
 
 export default function Home() {
   const { data: session, status } = useSession();
-  const [userFlags, setUserFlags] = useState([]);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchUserFlags = async () => {
-      if (session) {
-        try {
-          // Kullanıcının Discord rozetlerini getir
-          const response = await fetch('https://discord.com/api/v9/users/@me', {
-            headers: {
-              Authorization: `Bearer ${session.accessToken}`,
-            },
-          });
-
-          if (response.ok) {
-            const userData = await response.json();
-            const flags = userData.user_flags;
-
-            // Rozetleri metin formatına çevir
-            const badgeNames = [];
-            if (flags & 1) badgeNames.push('Discord Employee');
-            if (flags & 2) badgeNames.push('Partnered Server Owner');
-            if (flags & 4) badgeNames.push('HypeSquad Events');
-            if (flags & 8) badgeNames.push('Bug Hunter Level 1');
-            if (flags & 64) badgeNames.push('House Bravery');
-            if (flags & 128) badgeNames.push('House Brilliance');
-            if (flags & 256) badgeNames.push('House Balance');
-            if (flags & 512) badgeNames.push('Early Supporter');
-            if (flags & 1024) badgeNames.push('Team User');
-            if (flags & 4096) badgeNames.push('Bug Hunter Level 2');
-            if (flags & 16384) badgeNames.push('Verified Bot');
-            if (flags & 65536) badgeNames.push('Early Verified Bot Developer');
-
-            setUserFlags(badgeNames);
-          } else {
-            setError(`Discord API error: ${response.status} ${response.statusText}`);
-          }
-        } catch (error) {
-          console.error('Error fetching user flags:', error);
-          setError('Error fetching user flags.');
-        }
-      }
-    };
-
-    if (session) {
-      fetchUserFlags();
-    }
-  }, [session]);
+  const loading = status === 'loading';
 
   const handleSignIn = () => {
     signIn('discord');
@@ -92,7 +42,7 @@ export default function Home() {
         </div>
       </header>
       <main className="max-w-4xl mx-auto mt-20 p-4">
-        {status === 'loading' ? (
+        {loading ? (
           <div className="bg-white p-4 rounded-md shadow-md animate-pulse">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">Yükleniyor...</h2>
             <div className="flex items-center space-x-4">
@@ -107,7 +57,7 @@ export default function Home() {
           <div className="bg-white p-4 rounded-md shadow-md flex items-center space-x-4">
             <div className="relative h-24 w-24">
               <Image
-                src={session.user.image}
+                src={`https://cdn.discordapp.com/avatars/${session.user.discordId}/${session.user.avatar}.png`}
                 alt="Discord Profil Resmi"
                 layout="fill"
                 className="rounded-full"
@@ -116,16 +66,6 @@ export default function Home() {
             <div>
               <h2 className="text-xl font-semibold text-gray-800 mb-2">{session.user.name}</h2>
               <p className="text-gray-800 mb-2">{session.user.email}</p>
-              <div className="flex space-x-2">
-                {userFlags.map((badge) => (
-                  <span
-                    key={badge}
-                    className="bg-gray-200 text-gray-600 px-2 py-1 rounded-md text-sm"
-                  >
-                    {badge}
-                  </span>
-                ))}
-              </div>
             </div>
           </div>
         ) : (
