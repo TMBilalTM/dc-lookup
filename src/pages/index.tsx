@@ -9,18 +9,24 @@ export default function Home() {
   const [value, setValue] = useState<string>('');
   const [user, setUser] = useState<any>(null);
 
-  async function fetch() {
-    const check = await axios.get(`/api/user/${value}`).then(res => res.data).catch(() => null);
-    console.log(check)
-    if (!check?.ok) throw new Error('User not found!');
+  async function fetchUser() {
+    try {
+      const response = await axios.get(`/api/user/${value}`);
+      if (!response.data.ok) {
+        throw new Error('User not found!');
+      }
+      return response.data.data;
+    } catch (error) {
+      throw new Error('User not found!');
+    }
+  }
 
-    return check.data;
-  };
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long', year: 'numeric' };
     return date.toLocaleDateString('tr-TR', options);
   };
+
   const Badge = ({ badge }: any) => {
     const [isError, setIsError] = useState(false);
 
@@ -39,11 +45,13 @@ export default function Home() {
   };
 
   async function getUser() {
-    if (!value) return toast.error('Please enter a user id.');
-
+    if (!value) {
+      toast.error('Please enter a user id.');
+      return;
+    }
 
     toast.promise(
-      fetch(),
+      fetchUser(),
       {
         loading: 'Searching on Discord...',
         success: (data) => {
@@ -85,13 +93,13 @@ export default function Home() {
           initial={{ translateY: 50, opacity: 0 }}
           animate={{ translateY: 0, opacity: 1 }}
           transition={{ duration: 0.3 }}
-          className="flex flex-col items-center justify-start max-w-[42rem] h-auto bg-gray-200/40 mt-12 rounded-3xl p-2 md:p-4">
-          <div className="flex flex-col items-start justify-start">
+          className="flex flex-col items-center justify-start w-full md:w-[42rem] h-auto bg-gray-200/40 mt-12 rounded-3xl p-4 md:p-8">
+          <div className="flex flex-col items-start justify-start w-full">
             {user?.banner !== null ? (
               <img
                 src={user?.banner?.startsWith('a_') ? `https://cdn.discordapp.com/banners/${user.id}/${user.banner}.gif?size=4096` : `https://cdn.discordapp.com/banners/${user.id}/${user.banner}.png?size=4096`}
                 alt="Banner"
-                className="w-full mt-4 rounded-xl object-cover h-[10rem] md:h-[15rem] max-w-full"
+                className="w-full mt-4 rounded-xl object-cover h-[10rem] md:h-[15rem]"
               />
             ) : (
               <div className={`w-full mt-4 rounded-xl h-[10rem] md:h-[15rem] bg-[${user.banner_color ?? '#000000'}]`} />
@@ -121,8 +129,8 @@ export default function Home() {
           </div>
         </motion.div>
       ) : (
-        <div className="flex flex-col items-center justify-start max-w-[42rem] h-[25rem] bg-gray-200/40 mt-12 rounded-3xl p-2 md:p-4">
-          <div className="flex flex-col items-start justify-start">
+        <div className="flex flex-col items-center justify-start w-full md:w-[42rem] h-auto bg-gray-200/40 mt-12 rounded-3xl p-4 md:p-8">
+          <div className="flex flex-col items-start justify-start w-full">
             {user?.banner !== null ? (
               <img
                 src='https://assets-global.website-files.com/5f9072399b2640f14d6a2bf4/611af00d256b9e541fac258f_0_4clCON4Ko2L_PqGi.png'
