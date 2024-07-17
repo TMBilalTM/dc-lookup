@@ -8,7 +8,7 @@ const font = Montserrat({ subsets: ['latin'] });
 export default function App({ Component, pageProps }: AppProps) {
   return (
     <div className={font.className}>
-      <header className="w-full max-w-2xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
+      <header className="w-full max-w-2xl mx-auto py-2 px-2 sm:px-4 lg:px-6">
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center">
             <div className="w-8 h-8 sm:w-9 sm:h-9 bg-blue-500/10 rounded-md flex items-center justify-center">
@@ -24,7 +24,7 @@ export default function App({ Component, pageProps }: AppProps) {
         position="bottom-right"
         containerClassName="font-medium tracking-tighter"
       />
-      <main className="w-full max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+      <main className="w-full max-w-2xl mx-auto px-2 sm:px-4 lg:px-6">
         <Component {...pageProps} />
       </main>
     </div>

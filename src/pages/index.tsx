@@ -59,7 +59,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen w-full mx-auto flex flex-col items-center justify-center p-4 md:p-8">
+    <div className="min-h-screen w-full mx-auto flex flex-col items-center justify-center p-2 md:p-4">
       <span
         className="w-full block h-[35rem] absolute -z-[1] select-none mask top-0 left-0 right-0"
         draggable={false}
@@ -69,7 +69,7 @@ export default function Home() {
           backgroundPosition: 'center',
         }}
       />
-      <div className="mt-16 text-center">
+      <div className="mt-12 text-center">
         <p className="text-3xl md:text-5xl text-[#0e172b]/90 font-bold tracking-tighter">Discord Lookup</p>
         <p className="text-[#0e172b]/60 font-medium tracking-tighter mt-4">Find Discord user easily.</p>
       </div>
@@ -88,7 +88,7 @@ export default function Home() {
           initial={{ translateY: 50, opacity: 0 }}
           animate={{ translateY: 0, opacity: 1 }}
           transition={{ duration: 0.3 }}
-          className="flex flex-col items-center justify-start w-full max-w-4xl h-auto bg-gray-200/40 mt-12 rounded-3xl p-4 md:p-8">
+          className="flex flex-col items-center justify-start w-full max-w-4xl h-auto bg-gray-200/40 mt-12 rounded-3xl p-2 md:p-4">
           <div className="flex flex-col items-start justify-start w-full">
             {user?.banner !== null ? (
               <img src={user?.banner?.startsWith('a_') ? `https://cdn.discordapp.com/banners/${user.id}/${user.banner}.gif?size=4096` : `https://cdn.discordapp.com/banners/${user.id}/${user.banner}.png?size=4096`} alt="Banner" className="w-full h-[10rem] md:h-[15rem] rounded-xl object-cover" />
@@ -116,7 +116,7 @@ export default function Home() {
           </div>
         </motion.div>
       ) : (
-        <div className="flex flex-col items-center justify-start w-full max-w-4xl h-auto bg-gray-200/40 mt-12 rounded-3xl p-4 md:p-8">
+        <div className="flex flex-col items-center justify-start w-full max-w-4xl h-auto bg-gray-200/40 mt-12 rounded-3xl p-2 md:p-4">
           <div className="flex flex-col items-start justify-start w-full">
             <img src='https://assets-global.website-files.com/5f9072399b2640f14d6a2bf4/611af00d256b9e541fac258f_0_4clCON4Ko2L_PqGi.png' alt="Banner" className="w-full h-[10rem] md:h-[15rem] rounded-xl object-cover" />
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between w-full mt-4">
