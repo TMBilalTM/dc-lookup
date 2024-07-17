@@ -12,9 +12,10 @@ export default function Home() {
   // Tarihi uygun formatta göstermek için fonksiyon
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    const options = { day: 'numeric', month: 'long', year: 'numeric' };
+    const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long', year: 'numeric' };
     return date.toLocaleDateString('tr-TR', options);
   };
+  
 
   async function fetch() {
     const check = await axios.get(`/api/user/${value}`).then(res => res.data).catch(() => null);
