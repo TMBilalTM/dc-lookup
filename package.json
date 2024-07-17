@@ -23,6 +23,7 @@
     "express-session": "^1.18.0",
     "framer-motion": "^11.2.14",
     "fs": "^0.0.1-security",
+    "install": "^0.13.0",
     "jose": "^5.6.3",
     "jsonwebtoken": "^9.0.2",
     "jwt-decode": "^4.0.0",
@@ -32,8 +33,10 @@
     "next-auth": "^4.24.7",
     "next-cookies": "^2.0.3",
     "next-iron-session": "^4.2.0",
+    "npm": "^10.8.2",
     "react": "^18",
     "react-dom": "^18",
+    "react-google-recaptcha": "^3.1.0",
     "react-use": "^17.5.0",
     "sequelize": "^6.37.3",
     "validator": "^13.12.0"

@@ -1,4 +1,3 @@
-// pages/api/auth/[...nextauth].js
 import NextAuth from 'next-auth';
 import DiscordProvider from 'next-auth/providers/discord';
 import axios from 'axios';
@@ -10,7 +9,7 @@ export default NextAuth({
       clientSecret: process.env.DISCORD_CLIENT_SECRET,
     }),
   ],
-  secret: process.env.DISCORD_CLIENT_SECRET, // Bunu çevre değişkenlerinde tanımlayın
+  secret: process.env.DISCORD_CLIENT_SECRET,
   callbacks: {
     async jwt({ token, account }) {
       if (account) {
@@ -29,11 +28,11 @@ export default NextAuth({
             },
           });
 
-          const { id, avatar } = response.data;
-          session.user.discordId = id;
-          session.user.avatar = avatar;
+          const badges = response.data.user.flags; // Assuming flags represent badges
+
+          session.user.discordBadges = badges;
         } catch (error) {
-          console.error('Error fetching user profile:', error.response?.data || error.message);
+          console.error('Error fetching user badges:', error.response?.data || error.message);
         }
       }
 
