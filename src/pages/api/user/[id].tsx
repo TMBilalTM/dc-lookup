@@ -43,7 +43,7 @@ export default async function handler(
 
     // Check if the user has a banner, is not a bot, and has a GIF avatar
     if (user.banner && !user.bot && user.avatar && user.avatar.startsWith('a_')) {
-        badges.push('discordnitro.png');
+        badges.push('discordnitro');
     }
 
     return success({
