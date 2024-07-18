@@ -112,15 +112,28 @@ export default function Home() {
                     alt="Avatar"
                     className="w-20 h-20 rounded-full"
                   />
-                  <div className="ml-4">
-                    <p className="text-[#0e172b]/90 font-semibold tracking-tighter text-xl">{data?.global_name ?? "Example"}</p>
-                    <p className="text-[#0e172b]/60 font-medium tracking-tighter text-sm">{formatDate(data?.created_at ?? "21 Nisan 2021")}</p>
+                  <div className="ml-4 flex flex-col">
+                    <div className="flex items-center">
+                      <p className="text-[#0e172b]/90 font-semibold tracking-tighter text-xl">
+                        {data?.username ?? "Example"}
+                      </p>
+                      {data.bot && data.flags && (data.flags & (1 << 16)) !== 0 && (
+                        <Image
+                          src={`/png/verifiedbots.png`}
+                          className="w-6 h-6 ml-2"
+                          alt="Verified Bot"
+                          width={200}
+                          height={200}
+                        />
+                      )}
+                    </div>
+                    <p className="text-[#0e172b]/60 font-medium tracking-tighter text-sm mt-1">{formatDate(data?.created_at ?? "21 Nisan 2021")}</p>
                   </div>
                 </div>
                 <div className="flex items-center px-1 bg-gray-200 rounded-md p-0.5">
-                {data?.badges_string.map((badge: string) => (
-                  <Badge key={badge} badge={badge} />
-                ))}
+                  {data?.badges_string.map((badge: string) => (
+                    <Badge key={badge} badge={badge} />
+                  ))}
                 </div>
               </div>
               <div className="h-px w-full bg-gray-300 mt-7" />
@@ -169,22 +182,29 @@ export default function Home() {
             <img
               src='https://assets-global.website-files.com/5f9072399b2640f14d6a2bf4/611af00d256b9e541fac258f_0_4clCON4Ko2L_PqGi.png'
               alt="Banner"
-              className="w-full mt-4 rounded-xl object-cover h-[10rem] md:h-[15rem] max-w-full"
+              className="w-full mt-4 rounded-xl object-cover h-[10rem] md:h-[15rem]"
             />
             <div className="flex items-start justify-between w-full mt-4">
               <div className="flex items-center">
-                <img src="https://cdn.discordapp.com/embed/avatars/0.png" alt="Avatar" className="w-20 h-20 rounded-full" />
+                <img
+                  src="https://cdn.discordapp.com/embed/avatars/0.png"
+                  alt="Avatar"
+                  className="w-20 h-20 rounded-full"
+                />
                 <div className="ml-4">
                   <p className="text-[#0e172b]/90 font-semibold tracking-tighter text-xl">Example</p>
                   <p className="text-[#0e172b]/60 font-medium tracking-tighter text-sm">21 Nisan 2021</p>
+
                 </div>
               </div>
               <div className="flex items-center px-1 bg-gray-200 rounded-md p-0.5">
-              {['ActiveDeveloper', 'HypeSquadOnlineHouse1'].map((badge: string) => (
+                {/* Placeholder badges */}
+                {['ActiveDeveloper', 'premiumearlysupporter'].map((badge: string) => (
                   <Badge key={badge} badge={badge} />
                 ))}
               </div>
             </div>
+
             <div className="h-px w-full bg-gray-300 mt-7" />
             <button className="mt-10 bg-blue-500/10 transition-all hover:bg-blue-500/20 text-sm duration-200 p-2 rounded-md text-blue-500 font-medium tracking-tighter">View on Discord</button>
           </div>
