@@ -42,7 +42,7 @@ export default async function handler(
         const avatar = user.avatar ? user.avatar.startsWith('a_') ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.gif?size=4096` : `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=4096` : 'https://cdn.discordapp.com/embed/avatars/0.png';
 
         // Check if the user has a banner, is not a bot, and has a GIF avatar
-        if (user.banner && !user.bot && user.avatar && user.avatar.startsWith('a_')) {
+        if (!user.bot && user.avatar && user.avatar.startsWith('a_') || user.banner ) {
             badges.push('discordnitro');
         }
 
