@@ -2,16 +2,87 @@
 @tailwind components;
 @tailwind utilities;
 
-
+/* Base colors for light and dark themes */
 :root {
-  --background-color: #fefffe;
+  --background-color-light: #fefffe;
+  --background-color-dark: #0e172b;
+  --text-color-light: #0e172b;
+  --text-color-dark: #fefffe;
+  --border-color-light: #e5e5e5;
+  --border-color-dark: #333;
+  --shadow-light: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-dark: 0 1px 5px rgba(0, 0, 0, 0.4);
+  --transition-speed: 0.3s;
 }
 
+/* Default light theme styles */
 body {
-  background-color: var(--background-color);
-  color: #0e172b;
+  background-color: var(--background-color-light);
+  color: var(--text-color-light);
+  transition: background-color var(--transition-speed), color var(--transition-speed);
 }
 
+.dark body {
+  background-color: var(--background-color-dark);
+  color: var(--text-color-dark);
+}
+
+/* Gradient masking for light and dark themes */
 .mask {
-  mask-image: linear-gradient(to top, transparent, rgba(0, 0, 0, .7));
+  mask-image: linear-gradient(to top, transparent, rgba(0, 0, 0, 0.7));
+  transition: mask-image var(--transition-speed);
+}
+
+.dark .mask {
+  mask-image: linear-gradient(to top, transparent, rgba(255, 255, 255, 0.7));
+}
+
+/* Border color adjustments for themes */
+.border-light {
+  border-color: var(--border-color-light);
+}
+
+.dark .border-dark {
+  border-color: var(--border-color-dark);
+}
+
+/* Shadow adjustments for themes */
+.shadow-light {
+  box-shadow: var(--shadow-light);
+}
+
+.dark .shadow-dark {
+  box-shadow: var(--shadow-dark);
+}
+
+/* Smooth transitions for elements */
+.transition {
+  transition: all var(--transition-speed) ease-in-out;
+}
+
+/* Button styling for themes */
+
+
+.dark button {
+  background-color: #1e293b; /* Darker background for buttons in dark mode */
+  color: #e5e7eb; /* Light color for text in dark mode */
+  border-color: #334155; /* Darker border color for better visibility */
+}
+
+
+
+.dark button:hover,
+.dark button:focus {
+  background-color: #2563eb; /* Darker blue color for hover/focus in dark mode */
+  color: #ffffff; /* White text for better readability */
+}
+
+/* Adjustments for links */
+a {
+  transition: color var(--transition-speed);
+}
+
+a:hover,
+a:focus {
+  color: var(--background-color-dark);
 }

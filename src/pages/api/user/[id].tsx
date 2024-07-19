@@ -88,10 +88,13 @@ export default async function handler(
 
         // Check if the user is not a bot and meets the criteria for having a "discordnitro" badge
         let nitro = false;
-        if (!user.bot && (user.avatar && user.avatar.startsWith('a_')) || user.banner) {
+
+        // Eğer kullanıcı bot değilse ve avatar 'a_' ile başlıyorsa veya banner varsa
+        if (!user.bot && (user.avatar?.startsWith('a_') || user.banner)) {
             badges.push('discordnitro');
             nitro = true;
         }
+        
 
         let playing: string | null = null;
         let statusMessage: string | null = null;
@@ -132,10 +135,25 @@ export default async function handler(
 
     if (guild) {
         const banner = guild.banner ? `https://cdn.discordapp.com/banners/${guild.id}/${guild.banner}.png?size=4096` : null;
+
+        // Determine the most important badge
+        let mostImportantBadge: string | null = null;
+
+        // Define badge priority
+        const badgePriority = ["PARTNERED", "VERIFIED", "COMMUNITY2", "COMMUNITY"];
+
+        for (const badge of badgePriority) {
+            if (guild.features.includes(badge)) {
+                mostImportantBadge = badge;
+                break;
+            }
+        }
+
         return success({
             type: 'guild',
             ...guild,
-            banner
+            banner,
+            badges: mostImportantBadge ? [mostImportantBadge] : []
         });
     }
 

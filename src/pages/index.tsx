@@ -37,12 +37,20 @@ export default function Home() {
         src={`/png/${badge.toLowerCase()}.png`}
         className="w-6 h-6"
         alt="Badge"
-        width={200}
-        height={200}
+        width={24}
+        height={24}
         onError={() => setIsError(true)}
       />
     );
   };
+
+  const BadgeList = ({ badges }: { badges: string[] }) => (
+    <div className="flex gap-1">
+      {badges.map((badge) => (
+        <Badge key={badge} badge={badge} />
+      ))}
+    </div>
+  );
 
   async function getData() {
     if (!value) {
@@ -93,7 +101,8 @@ export default function Home() {
           initial={{ translateY: 50, opacity: 0 }}
           animate={{ translateY: 0, opacity: 1 }}
           transition={{ duration: 0.3 }}
-          className="flex flex-col items-center justify-start w-full md:w-[42rem] h-auto bg-gray-200/40 mt-12 rounded-3xl p-4 md:p-8">
+          className="flex flex-col items-center justify-start w-full md:w-[42rem] h-auto bg-gray-200/40 mt-12 rounded-3xl p-4 md:p-8 relative"
+        >
           {data.type === 'user' ? (
             <div className="flex flex-col items-start justify-start w-full">
               {data?.banner !== null ? (
@@ -122,18 +131,16 @@ export default function Home() {
                           src={`/png/verifiedbots.png`}
                           className="w-6 h-6 ml-2"
                           alt="Verified Bot"
-                          width={200}
-                          height={200}
+                          width={24}
+                          height={24}
                         />
                       )}
                     </div>
                     <p className="text-[#0e172b]/60 font-medium tracking-tighter text-sm mt-1">{formatDate(data?.created_at ?? "21 Nisan 2021")}</p>
                   </div>
                 </div>
-                <div className="flex items-center px-1 bg-gray-200 rounded-md p-0.5">
-                  {data?.badges_string.map((badge: string) => (
-                    <Badge key={badge} badge={badge} />
-                  ))}
+                <div className="relative flex flex-col items-start mt-4">
+                  <BadgeList badges={data?.badges_string || []} />
                 </div>
               </div>
               <div className="h-px w-full bg-gray-300 mt-7" />
@@ -144,12 +151,18 @@ export default function Home() {
           ) : (
             <div className="flex flex-col items-start justify-start w-full">
               {data?.banner ? (
-                <img
-                  src={data.banner}
-                  alt="Guild Banner"
-                  className="w-full mt-4 rounded-xl object-cover h-[10rem] md:h-[15rem]"
-                />
+                <div className="relative w-full mt-4 rounded-xl h-[10rem] md:h-[15rem]">
+                  <img
+                    src={data.banner}
+                    alt="Guild Banner"
+                    className="w-full h-full object-cover rounded-xl"
+                  />
+                  <div className="absolute bottom-2 right-2 flex gap-1">
+                    <BadgeList badges={data?.badges || []} />
+                  </div>
+                </div>
               ) : null}
+
               {data?.icon ? (
                 <img
                   src={`https://cdn.discordapp.com/icons/${data.id}/${data.icon}.png?size=4096`}
@@ -163,6 +176,7 @@ export default function Home() {
                   className="w-20 h-20 rounded-full mt-4"
                 />
               )}
+
               <div className="flex items-center mt-4">
                 <div className="ml-4">
                   <p className="text-[#0e172b]/90 font-semibold tracking-tighter text-xl">{data?.name ?? "Example Guild"}</p>
@@ -180,36 +194,39 @@ export default function Home() {
         <div className="flex flex-col items-center justify-start w-full md:w-[42rem] h-auto bg-gray-200/40 mt-12 rounded-3xl p-4 md:p-8">
           <div className="flex flex-col items-start justify-start w-full">
             <img
-              src='https://assets-global.website-files.com/5f9072399b2640f14d6a2bf4/611af00d256b9e541fac258f_0_4clCON4Ko2L_PqGi.png'
-              alt="Banner"
+              src='https://i.dfr.gg/banniere-discord-go-live.png'
+              alt="Placeholder"
               className="w-full mt-4 rounded-xl object-cover h-[10rem] md:h-[15rem]"
             />
             <div className="flex items-start justify-between w-full mt-4">
               <div className="flex items-center">
                 <img
                   src="https://cdn.discordapp.com/embed/avatars/0.png"
-                  alt="Avatar"
+                  alt="Avatar Placeholder"
                   className="w-20 h-20 rounded-full"
                 />
-                <div className="ml-4">
-                  <p className="text-[#0e172b]/90 font-semibold tracking-tighter text-xl">Example</p>
-                  <p className="text-[#0e172b]/60 font-medium tracking-tighter text-sm">21 Nisan 2021</p>
-
+                <div className="ml-4 flex flex-col">
+                  <div className="flex items-center">
+                    <p className="text-[#0e172b]/90 font-semibold tracking-tighter text-xl">
+                      Example User
+                    </p>
+                  </div>
+                  <p className="text-[#0e172b]/60 font-medium tracking-tighter text-sm mt-1">21 Nisan 2021</p>
                 </div>
               </div>
-              <div className="flex items-center px-1 bg-gray-200 rounded-md p-0.5">
-                {/* Placeholder badges */}
-                {['ActiveDeveloper', 'premiumearlysupporter'].map((badge: string) => (
-                  <Badge key={badge} badge={badge} />
-                ))}
+              <div className="relative flex flex-col items-start mt-4">
+                <BadgeList badges={['premiumearlysupporter','partner', 'bughunterlevel2']} />
+
               </div>
             </div>
-
             <div className="h-px w-full bg-gray-300 mt-7" />
-            <button className="mt-10 bg-blue-500/10 transition-all hover:bg-blue-500/20 text-sm duration-200 p-2 rounded-md text-blue-500 font-medium tracking-tighter">View on Discord</button>
+            <Link href="https://discord.com/" target="_blank">
+              <button className="mt-10 bg-blue-500/10 transition-all hover:bg-blue-500/20 text-sm duration-200 p-2 rounded-md text-blue-500 font-medium tracking-tighter">View on Discord</button>
+            </Link>
           </div>
         </div>
       )}
+      <p className="text-sm text-gray-400/80 mt-24 max-w-48 text-center font-medium tracking-tighter">This app is not affiliated with <span className="text-indigo-400">Discord</span>.</p>
     </div>
   );
 }
