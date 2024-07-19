@@ -1,46 +1,64 @@
+// pages/history.tsx
+
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import Link from 'next/link';
-import Image from 'next/image';
 
-const History = () => {
-  const [history, setHistory] = useState<any[]>([]);
+interface HistoryEntry {
+    id: string;
+    name: string;
+    avatar: string;
+    type: 'user' | 'guild';
+}
 
-  useEffect(() => {
-    async function fetchHistory() {
-      const response = await axios.get('/api/history');
-      if (response.data.ok) {
-        setHistory(response.data.data);
-      }
+export default function HistoryPage() {
+    const [history, setHistory] = useState<HistoryEntry[]>([]);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        async function fetchHistory() {
+            try {
+                const response = await axios.get('/api/history');
+                if (response.data.ok) {
+                    setHistory(response.data.history);
+                } else {
+                    setError('Failed to fetch history.');
+                }
+            } catch (err) {
+                setError('An error occurred while fetching history.');
+            }
+        }
+        fetchHistory();
+    }, []);
+
+    if (error) {
+        return <div className="container mx-auto p-4 text-red-600">{error}</div>;
     }
-    fetchHistory();
-  }, []);
 
-  return (
-    <div className="min-h-screen w-full mx-auto flex flex-col items-center justify-center">
-      <h1 className="text-3xl font-bold mb-6">Arama Geçmişi</h1>
-      <div className="flex flex-col items-center justify-center w-full md:w-[42rem] bg-gray-200/40 rounded-3xl p-4 md:p-8">
-        {history.map((entry, index) => (
-          <div key={index} className="flex items-center justify-between w-full mt-4">
-            <div className="flex items-center">
-              <img
-                src={entry.icon ?? "https://cdn.discordapp.com/embed/avatars/0.png"}
-                alt="Icon"
-                className="w-16 h-16 rounded-full"
-              />
-              <div className="ml-4">
-                <p className="text-[#0e172b]/90 font-semibold tracking-tighter text-xl">{entry.name}</p>
-                <p className="text-[#0e172b]/60 font-medium tracking-tighter text-sm">{entry.type === 'user' ? 'User' : 'Guild'}</p>
-              </div>
-            </div>
-            <Link href={entry.type === 'user' ? `https://discord.com/users/${entry.id}` : `https://discord.com/guilds/${entry.id}`} target="_blank">
-              <button className="bg-blue-500/10 transition-all hover:bg-blue-500/20 text-sm duration-200 p-2 rounded-md text-blue-500 font-medium tracking-tighter">View on Discord</button>
-            </Link>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-export default History;
+    return (
+        <div className="container mx-auto p-4">
+            <h1 className="text-3xl font-extrabold mb-6 text-text-color">Request History</h1>
+            <ul className="space-y-4">
+                {history.map((entry) => (
+                    <li key={entry.id} className="flex items-center space-x-4 border rounded-lg shadow-md bg-primary-bg-color p-4">
+                        <img 
+                            src={entry.avatar}
+                            alt={entry.name} 
+                            className="w-16 h-16 rounded-full border border-gray-300" 
+                        />
+                        <div className="flex-1">
+                            <div className="flex items-center space-x-2 mb-1">
+                                <div className={`text-lg font-semibold ${entry.type === 'user' ? 'text-primary-color' : 'text-green-600'}`}>
+                                    {entry.name}
+                                </div>
+                                <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full ${entry.type === 'user' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}>
+                                    {entry.type ? entry.type.charAt(0).toUpperCase() + entry.type.slice(1) : 'Unknown'}
+                                </span>
+                            </div>
+                            <div className="text-sm text-gray-600">{entry.id}</div>
+                        </div>
+                    </li>
+                ))}
+            </ul>
+        </div>
+    );
+}

@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import config from '../../../../project.config';
 import axios from 'axios';
 import { UserFlagsBitField, UserFlags } from 'discord.js';
+import { addToHistory } from '../../../../historyStore';
 
 interface DiscordUser {
     id: string;
@@ -72,6 +73,10 @@ export default async function handler(
     }).then(res => res.data).catch(() => null);
 
     if (user) {
+        const avatar = user.avatar ? user.avatar.startsWith('a_') ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.gif?size=4096` : `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=4096` : 'https://cdn.discordapp.com/embed/avatars/0.png';
+        
+        addToHistory({ id: user.id,  name: `${user.username}`, avatar,type: `User`});
+
         const badges: string[] = [];
         const flags = new UserFlagsBitField(user.flags);
 
@@ -84,23 +89,19 @@ export default async function handler(
 
         const createdAt = new Date(Number((BigInt(user.id) >> BigInt(22)) + BigInt(1420070400000))).toISOString();
         const bannerColor = user.accent_color ? `#${user.accent_color.toString(16)}` : null;
-        const avatar = user.avatar ? user.avatar.startsWith('a_') ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.gif?size=4096` : `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=4096` : 'https://cdn.discordapp.com/embed/avatars/0.png';
 
         // Check if the user is not a bot and meets the criteria for having a "discordnitro" badge
         let nitro = false;
 
-        // Eğer kullanıcı bot değilse ve avatar 'a_' ile başlıyorsa veya banner varsa
         if (!user.bot && (user.avatar?.startsWith('a_') || user.banner)) {
             badges.push('discordnitro');
             nitro = true;
         }
-        
 
         let playing: string | null = null;
         let statusMessage: string | null = null;
 
         if (guildId) {
-            // Get user's presence from guild
             const presence: DiscordPresence | null = await axios.get(`https://discord.com/api/v10/guilds/${guildId}/members/${id}`, {
                 headers: {
                     Authorization: `${config.token}`
@@ -126,7 +127,6 @@ export default async function handler(
         });
     }
 
-    // Try to get the guild if user is not found
     const guild: DiscordGuild | null = await axios.get(`https://discord.com/api/v10/guilds/${id}`, {
         headers: {
             Authorization: `${config.token}`
@@ -135,11 +135,10 @@ export default async function handler(
 
     if (guild) {
         const banner = guild.banner ? `https://cdn.discordapp.com/banners/${guild.id}/${guild.banner}.png?size=4096` : null;
+        const icon = guild.icon ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png?size=4096` : 'https://cdn.discordapp.com/embed/avatars/0.png';
 
-        // Determine the most important badge
         let mostImportantBadge: string | null = null;
 
-        // Define badge priority
         const badgePriority = ["PARTNERED", "VERIFIED", "COMMUNITY2", "COMMUNITY"];
 
         for (const badge of badgePriority) {
@@ -148,6 +147,8 @@ export default async function handler(
                 break;
             }
         }
+
+        addToHistory({ id: guild.id, name: guild.name, avatar: icon ,type: `Guild`});
 
         return success({
             type: 'guild',
