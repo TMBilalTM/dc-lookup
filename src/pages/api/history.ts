@@ -1,12 +1,10 @@
-// pages/api/history.ts
-
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getHistory } from '../../../historyStore';
+import { loadHistory, saveHistory } from '../../../utils/localStorage';
 
 export default function handler(
     req: NextApiRequest,
     res: NextApiResponse,
 ) {
-    const history = getHistory();
+    const history = loadHistory();
     return res.status(200).json({ ok: true, history });
 }
