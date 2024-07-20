@@ -13,11 +13,11 @@ export default function Home() {
     try {
       const response = await axios.get(`/api/user/${value}`);
       if (!response.data.ok) {
-        throw new Error('User or Guild not found!');
+        throw new Error('User or Guild not found! The server widget system may not be turned on.');
       }
       return response.data.data;
     } catch (error) {
-      throw new Error('User or Guild not found!');
+      throw new Error('User or Guild not found! The server widget system may not be turned on.');
     }
   }
 
@@ -165,7 +165,7 @@ export default function Home() {
 
               {data?.icon ? (
                 <img
-                  src={`https://cdn.discordapp.com/icons/${data.id}/${data.icon}.png?size=4096`}
+                  src={`${data.icon}`}
                   alt="Guild Icon"
                   className="w-20 h-20 rounded-full mt-4"
                 />
@@ -184,7 +184,7 @@ export default function Home() {
                 </div>
               </div>
               <div className="h-px w-full bg-gray-300 mt-7" />
-              <Link href={`https://discord.com/guilds/${data.id}`} target="_blank">
+              <Link href={`${data?.instant_invite}`} target="_blank">
                 <button className="mt-10 bg-blue-500/10 transition-all hover:bg-blue-500/20 text-sm duration-200 p-2 rounded-md text-blue-500 font-medium tracking-tighter">View on Discord</button>
               </Link>
             </div>

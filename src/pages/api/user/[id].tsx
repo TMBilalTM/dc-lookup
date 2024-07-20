@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import config from '../../../../project.config';
 import axios from 'axios';
 import { UserFlagsBitField, UserFlags } from 'discord.js';
+import config from '../../../../project.config';
 import { addToHistory } from '../../../../historyStore';
 
 interface DiscordUser {
@@ -39,6 +39,7 @@ interface DiscordGuild {
         name: string;
         animated: boolean;
     }>;
+    instant_invite?: string; // Davet bilgisi ekleniyor
 }
 
 interface DiscordPresence {
@@ -49,33 +50,81 @@ interface DiscordPresence {
     }>;
 }
 
-export default async function handler(
-    req: NextApiRequest,
-    res: NextApiResponse,
-) {
-    function error(message: string) {
-        return res.status(400).json({ ok: false, msg: message });
-    };
+// Hata işleme fonksiyonu
+function handleError(error: unknown): string {
+    if (axios.isAxiosError(error) && error.response) {
+        return error.response.data?.msg || error.message;
+    }
+    return (error as Error).message || 'An unexpected error occurred';
+}
 
-    function success(data: any) {
-        return res.status(200).json({ ok: true, data: data });
-    };
+// Sunucu widget verilerini çekme fonksiyonu
+async function fetchGuild(id: string) {
+    try {
+        const widgetResponse = await axios.get(`https://discord.com/api/v10/guilds/${id}/widget.json`, {
+            headers: {
+                "Authorization": `${config.token}`
+            }
+        });
 
-    const id = req.query.id;
-    const guildId = req.query.guild_id;
-    if (!id) return error('id is required');
+        const { instant_invite } = widgetResponse.data;
 
-    // Try to get the user
-    const user: DiscordUser | null = await axios.get(`https://discord.com/api/v10/users/${id}`, {
-        headers: {
-            Authorization: `${config.token}`
+        try {
+            const inviteResponse = await axios.get(`https://discord.com/api/v10/invites/${instant_invite.split('/')[4]}`, {
+                headers: {
+                    "Authorization": `${config.token}`
+                }
+            });
+
+            const { guild, channel } = inviteResponse.data;
+
+            return {
+                success: true,
+                guild: { ...guild, instant_invite }, // Davet bilgisini ekleyin
+                channel,
+                code: instant_invite
+            };
+        } catch (err) {
+            return { success: false, error: 'The widget invite could not be retrieved!' };
         }
-    }).then(res => res.data).catch(() => null);
+    } catch (err) {
+        if (axios.isAxiosError(err)) {
+            if (err.response?.status === 404) return { success: false, error: 'Unknown Guild.' };
+            if (err.response?.status === 403) return { success: false, error: 'This server\'s widget is disabled.' };
+            return { success: false, error: err.response?.data?.msg || err.message };
+        }
+        return { success: false, error: 'An unexpected error occurred.' };
+    }
+}
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+    const { id, guild_id: guildId } = req.query;
+
+    if (!id || typeof id !== 'string') {
+        return res.status(400).json({ ok: false, msg: 'id is required and must be a string' });
+    }
+
+    // Kullanıcı bilgilerini çek
+    let user: DiscordUser | null = null;
+    try {
+        const response = await axios.get(`https://discord.com/api/v10/users/${id}`, {
+            headers: {
+                "Authorization": `${config.token}`
+            }
+        });
+        user = response.data;
+    } catch (err) {
+        console.error('Error fetching user:', handleError(err));
+        user = null;
+    }
 
     if (user) {
-        const avatar = user.avatar ? user.avatar.startsWith('a_') ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.gif?size=4096` : `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=4096` : 'https://cdn.discordapp.com/embed/avatars/0.png';
-        
-        addToHistory({ id: user.id,  name: `${user.username}`, avatar,type: `User`});
+        const avatar = user.avatar ? user.avatar.startsWith('a_') 
+            ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.gif?size=4096`
+            : `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=4096` 
+            : 'https://cdn.discordapp.com/embed/avatars/0.png';
+
+        addToHistory({ id: user.id, name: `${user.username}`, avatar, type: 'User' });
 
         const badges: string[] = [];
         const flags = new UserFlagsBitField(user.flags);
@@ -88,9 +137,8 @@ export default async function handler(
         }
 
         const createdAt = new Date(Number((BigInt(user.id) >> BigInt(22)) + BigInt(1420070400000))).toISOString();
-        const bannerColor = user.accent_color ? `#${user.accent_color.toString(16)}` : null;
+        const bannerColor = user.accent_color ? `#${user.accent_color.toString(16).padStart(6, '0')}` : null;
 
-        // Check if the user is not a bot and meets the criteria for having a "discordnitro" badge
         let nitro = false;
 
         if (!user.bot && (user.avatar?.startsWith('a_') || user.banner)) {
@@ -102,61 +150,83 @@ export default async function handler(
         let statusMessage: string | null = null;
 
         if (guildId) {
-            const presence: DiscordPresence | null = await axios.get(`https://discord.com/api/v10/guilds/${guildId}/members/${id}`, {
-                headers: {
-                    Authorization: `${config.token}`
-                }
-            }).then(res => res.data).catch(() => null);
+            try {
+                const presenceResponse = await axios.get(`https://discord.com/api/v10/guilds/${guildId}/members/${id}`, {
+                    headers: {
+                        "Authorization": `${config.token}`
+                    }
+                });
+                const presence: DiscordPresence = presenceResponse.data;
 
-            if (presence && presence.activities) {
-                playing = presence.activities.find(activity => activity.type === 0)?.name ?? null;
-                statusMessage = presence.activities.find(activity => activity.type === 4)?.state ?? null;
+                if (presence && presence.activities) {
+                    playing = presence.activities.find(activity => activity.type === 0)?.name ?? null;
+                    statusMessage = presence.activities.find(activity => activity.type === 4)?.state ?? null;
+                }
+            } catch (err) {
+                console.error('Error fetching presence:', handleError(err));
+                // Presence hatalarını şimdilik görmezden gel
             }
         }
 
-        return success({
-            type: 'user',
-            ...user,
-            badges_string: badges.map(f => f),
-            nitro: nitro,
-            created_at: createdAt,
-            banner_color: bannerColor,
-            modified_avatar: avatar,
-            playing,
-            status_message: statusMessage
+        return res.status(200).json({
+            ok: true,
+            data: {
+                type: 'user',
+                ...user,
+                badges_string: badges,
+                nitro,
+                created_at: createdAt,
+                banner_color: bannerColor,
+                modified_avatar: avatar,
+                playing,
+                status_message: statusMessage
+            }
         });
     }
 
-    const guild: DiscordGuild | null = await axios.get(`https://discord.com/api/v10/guilds/${id}`, {
-        headers: {
-            Authorization: `${config.token}`
-        }
-    }).then(res => res.data).catch(() => null);
+    // Kullanıcı bulunamazsa, sunucu bilgilerini widget ile çekmeye çalış
+    const guildResponse = await fetchGuild(id);
 
-    if (guild) {
+    if (guildResponse.success) {
+        const guild = guildResponse.guild;
+
         const banner = guild.banner ? `https://cdn.discordapp.com/banners/${guild.id}/${guild.banner}.png?size=4096` : null;
         const icon = guild.icon ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png?size=4096` : 'https://cdn.discordapp.com/embed/avatars/0.png';
+
+        console.log('Guild Icon URL:', icon); // Debug: İkon URL'sini kontrol et
 
         let mostImportantBadge: string | null = null;
 
         const badgePriority = ["PARTNERED", "VERIFIED", "COMMUNITY2", "COMMUNITY"];
 
         for (const badge of badgePriority) {
-            if (guild.features.includes(badge)) {
+            if (guild.features && guild.features.includes(badge)) {
                 mostImportantBadge = badge;
                 break;
             }
         }
 
-        addToHistory({ id: guild.id, name: guild.name, avatar: icon ,type: `Guild`});
+        addToHistory({ id: guild.id, name: guild.name, avatar: icon, type: 'Guild' });
 
-        return success({
-            type: 'guild',
-            ...guild,
-            banner,
-            badges: mostImportantBadge ? [mostImportantBadge] : []
+        return res.status(200).json({
+            ok: true,
+            data: {
+                type: 'guild',
+                id: guild.id,
+                name: guild.name,
+                icon,
+                banner,
+                member_count: guild.member_count,
+                presence_count: guild.presence_count,
+                verification_level: guild.verification_level,
+                features: guild.features,
+                roles: guild.roles,
+                emojis: guild.emojis,
+                badges: mostImportantBadge ? [mostImportantBadge] : [],
+                instant_invite: guild.instant_invite // Davet bilgisini ekleyin
+            }
         });
     }
 
-    return error('User or Guild not found');
-};
+    return res.status(400).json({ ok: false, msg: 'User or Guild not found' });
+}
