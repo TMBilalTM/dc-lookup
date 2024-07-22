@@ -25,8 +25,8 @@ interface DiscordGuild {
     icon: string | null;
     banner: string | null;
     owner_id: string;
-    member_count: number;
     presence_count: number;
+    member_count?: number; // Üye sayısını opsiyonel ekledik
     verification_level: number;
     features: string[];
     roles: Array<{
@@ -39,7 +39,7 @@ interface DiscordGuild {
         name: string;
         animated: boolean;
     }>;
-    instant_invite?: string; // Davet bilgisi ekleniyor
+    instant_invite?: string;
 }
 
 interface DiscordPresence {
@@ -63,27 +63,41 @@ async function fetchGuild(id: string) {
     try {
         const widgetResponse = await axios.get(`https://discord.com/api/v10/guilds/${id}/widget.json`, {
             headers: {
-                "Authorization": `${config.token}`
+                "Authorization": `Bot ${config.token}`
             }
         });
 
         const { instant_invite } = widgetResponse.data;
 
+        // Instant invite ile sunucu hakkında daha fazla bilgi al
         try {
             const inviteResponse = await axios.get(`https://discord.com/api/v10/invites/${instant_invite.split('/')[4]}`, {
                 headers: {
-                    "Authorization": `${config.token}`
+                    "Authorization": `Bot ${config.token}`
                 }
             });
 
             const { guild, channel } = inviteResponse.data;
 
-            return {
-                success: true,
-                guild: { ...guild, instant_invite }, // Davet bilgisini ekleyin
-                channel,
-                code: instant_invite
-            };
+            // Fetch guild details to get member count
+            try {
+                const guildDetailsResponse = await axios.get(`https://discord.com/api/v10/guilds/${id}/widget.json`, {
+                    headers: {
+                        "Authorization": `Bot ${config.token}`
+                    }
+                });
+
+                const guildDetails = guildDetailsResponse.data;
+
+                return {
+                    success: true,
+                    guild: { ...guild, instant_invite, member_count: guildDetails.member_count }, // Üye sayısını ekledik
+                    channel,
+                    code: instant_invite
+                };
+            } catch (err) {
+                return { success: false, error: 'The guild details could not be retrieved!' };
+            }
         } catch (err) {
             return { success: false, error: 'The widget invite could not be retrieved!' };
         }
@@ -109,7 +123,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
         const response = await axios.get(`https://discord.com/api/v10/users/${id}`, {
             headers: {
-                "Authorization": `${config.token}`
+                "Authorization": `Bot ${config.token}`
             }
         });
         user = response.data;
@@ -153,7 +167,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             try {
                 const presenceResponse = await axios.get(`https://discord.com/api/v10/guilds/${guildId}/members/${id}`, {
                     headers: {
-                        "Authorization": `${config.token}`
+                        "Authorization": `Bot ${config.token}`
                     }
                 });
                 const presence: DiscordPresence = presenceResponse.data;
@@ -216,14 +230,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 name: guild.name,
                 icon,
                 banner,
-                member_count: guild.member_count,
                 presence_count: guild.presence_count,
+                member_count: guild.member_count, // Üye sayısını ekledik
                 verification_level: guild.verification_level,
                 features: guild.features,
                 roles: guild.roles,
                 emojis: guild.emojis,
                 badges: mostImportantBadge ? [mostImportantBadge] : [],
-                instant_invite: guild.instant_invite // Davet bilgisini ekleyin
+                instant_invite: guild.instant_invite
             }
         });
     }

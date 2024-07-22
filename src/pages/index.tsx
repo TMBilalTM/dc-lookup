@@ -64,6 +64,7 @@ export default function Home() {
         loading: 'Searching on Discord...',
         success: (data) => {
           setData(data);
+          console.log(data)
           return 'User or Guild found!';
         },
         error: (error) => {
@@ -181,6 +182,7 @@ export default function Home() {
                 <div className="ml-4">
                   <p className="text-[#0e172b]/90 font-semibold tracking-tighter text-xl">{data?.name ?? "Example Guild"}</p>
                   <p className="text-[#0e172b]/60 font-medium tracking-tighter text-sm">Guild</p>
+
                 </div>
               </div>
               <div className="h-px w-full bg-gray-300 mt-7" />

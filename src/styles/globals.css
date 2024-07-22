@@ -61,7 +61,11 @@ body {
 }
 
 /* Button styling for themes */
-
+button {
+  background-color: #f0f0f0; /* Light background for buttons */
+  color: #0e172b; /* Dark text color for better readability */
+  border: 1px solid #ddd; /* Light border color */
+}
 
 .dark button {
   background-color: #1e293b; /* Darker background for buttons in dark mode */
@@ -69,7 +73,10 @@ body {
   border-color: #334155; /* Darker border color for better visibility */
 }
 
-
+button:hover,
+button:focus {
+  background-color: #ddd; /* Lighter background on hover in light mode */
+}
 
 .dark button:hover,
 .dark button:focus {
@@ -80,9 +87,14 @@ body {
 /* Adjustments for links */
 a {
   transition: color var(--transition-speed);
+  color: #0e172b; /* Default link color */
+}
+
+.dark a {
+  color: #fefffe; /* Link color in dark mode */
 }
 
 a:hover,
 a:focus {
-  color: var(--background-color-dark);
+  color: #2563eb; /* Highlight color on hover/focus */
 }
