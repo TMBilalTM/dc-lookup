@@ -190,6 +190,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(400).json({ ok: false, msg: 'id is required and must be a string' });
     }
 
+    // Check for guild first
     const guildResponse = await fetchGuild(id);
 
     if (guildResponse.success) {
@@ -233,6 +234,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
     }
 
+    // If not a guild, check for user
     const userResponse = await fetchUser(id, guildId as string | undefined);
 
     if (userResponse.success) {
