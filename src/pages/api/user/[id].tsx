@@ -107,27 +107,15 @@ async function fetchGuild(id: string) {
     }
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    const { id, guild_id: guildId } = req.query;
-
-    if (!id || typeof id !== 'string') {
-        return res.status(400).json({ ok: false, msg: 'id is required and must be a string' });
-    }
-
-    let user: DiscordUser | null = null;
+async function fetchUser(id: string, guildId?: string): Promise<any> {
     try {
         const response = await axios.get(`https://discord.com/api/v10/users/${id}`, {
             headers: {
-                "Authorization": `${config.token}`
+                "Authorization": `Bot ${config.token}`
             }
         });
-        user = response.data;
-    } catch (err) {
-        console.error('Error fetching user:', handleError(err));
-        user = null;
-    }
+        const user: DiscordUser = response.data;
 
-    if (user) {
         const avatar = user.avatar ? user.avatar.startsWith('a_') 
             ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.gif?size=4096`
             : `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=4096` 
@@ -162,7 +150,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             try {
                 const presenceResponse = await axios.get(`https://discord.com/api/v10/guilds/${guildId}/members/${id}`, {
                     headers: {
-                        "Authorization": `${config.token}`
+                        "Authorization": `Bot ${config.token}`
                     }
                 });
                 const presence: DiscordPresence = presenceResponse.data;
@@ -176,8 +164,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }
         }
 
-        return res.status(200).json({
-            ok: true,
+        return {
+            success: true,
             data: {
                 type: 'user',
                 ...user,
@@ -189,7 +177,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 playing,
                 status_message: statusMessage
             }
-        });
+        };
+    } catch (err) {
+        return { success: false, error: handleError(err) };
+    }
+}
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+    const { id, guild_id: guildId } = req.query;
+
+    if (!id || typeof id !== 'string') {
+        return res.status(400).json({ ok: false, msg: 'id is required and must be a string' });
     }
 
     const guildResponse = await fetchGuild(id);
@@ -232,6 +230,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 badges: mostImportantBadge ? [mostImportantBadge] : [],
                 instant_invite: guild.instant_invite
             }
+        });
+    }
+
+    const userResponse = await fetchUser(id, guildId as string | undefined);
+
+    if (userResponse.success) {
+        return res.status(200).json({
+            ok: true,
+            data: userResponse.data
         });
     }
 
