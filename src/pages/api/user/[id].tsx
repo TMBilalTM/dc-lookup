@@ -26,7 +26,7 @@ interface DiscordGuild {
     banner: string | null;
     owner_id: string;
     presence_count: number;
-    member_count?: number; // Üye sayısını opsiyonel ekledik
+    member_count?: number;
     verification_level: number;
     features: string[];
     roles: Array<{
@@ -50,7 +50,6 @@ interface DiscordPresence {
     }>;
 }
 
-// Hata işleme fonksiyonu
 function handleError(error: unknown): string {
     if (axios.isAxiosError(error) && error.response) {
         return error.response.data?.msg || error.message;
@@ -58,7 +57,6 @@ function handleError(error: unknown): string {
     return (error as Error).message || 'An unexpected error occurred';
 }
 
-// Sunucu widget verilerini çekme fonksiyonu
 async function fetchGuild(id: string) {
     try {
         const widgetResponse = await axios.get(`https://discord.com/api/v10/guilds/${id}/widget.json`, {
@@ -69,7 +67,6 @@ async function fetchGuild(id: string) {
 
         const { instant_invite } = widgetResponse.data;
 
-        // Instant invite ile sunucu hakkında daha fazla bilgi al
         try {
             const inviteResponse = await axios.get(`https://discord.com/api/v10/invites/${instant_invite.split('/')[4]}`, {
                 headers: {
@@ -79,7 +76,6 @@ async function fetchGuild(id: string) {
 
             const { guild, channel } = inviteResponse.data;
 
-            // Fetch guild details to get member count
             try {
                 const guildDetailsResponse = await axios.get(`https://discord.com/api/v10/guilds/${id}/widget.json`, {
                     headers: {
@@ -91,7 +87,7 @@ async function fetchGuild(id: string) {
 
                 return {
                     success: true,
-                    guild: { ...guild, instant_invite, member_count: guildDetails.member_count }, // Üye sayısını ekledik
+                    guild: { ...guild, instant_invite, member_count: guildDetails.member_count },
                     channel,
                     code: instant_invite
                 };
@@ -118,7 +114,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(400).json({ ok: false, msg: 'id is required and must be a string' });
     }
 
-    // Kullanıcı bilgilerini çek
     let user: DiscordUser | null = null;
     try {
         const response = await axios.get(`https://discord.com/api/v10/users/${id}`, {
@@ -178,7 +173,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 }
             } catch (err) {
                 console.error('Error fetching presence:', handleError(err));
-                // Presence hatalarını şimdilik görmezden gel
             }
         }
 
@@ -198,7 +192,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
     }
 
-    // Kullanıcı bulunamazsa, sunucu bilgilerini widget ile çekmeye çalış
     const guildResponse = await fetchGuild(id);
 
     if (guildResponse.success) {
@@ -207,7 +200,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const banner = guild.banner ? `https://cdn.discordapp.com/banners/${guild.id}/${guild.banner}.png?size=4096` : null;
         const icon = guild.icon ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png?size=4096` : 'https://cdn.discordapp.com/embed/avatars/0.png';
 
-        console.log('Guild Icon URL:', icon); // Debug: İkon URL'sini kontrol et
+        console.log('Guild Icon URL:', icon);
 
         let mostImportantBadge: string | null = null;
 
@@ -231,7 +224,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 icon,
                 banner,
                 presence_count: guild.presence_count,
-                member_count: guild.member_count, // Üye sayısını ekledik
+                member_count: guild.member_count,
                 verification_level: guild.verification_level,
                 features: guild.features,
                 roles: guild.roles,
