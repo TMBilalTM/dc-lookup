@@ -26,7 +26,7 @@ interface DiscordGuild {
     banner: string | null;
     owner_id: string;
     presence_count: number;
-    member_count?: number; // Üye sayısını opsiyonel ekledik
+    member_count?: number;
     verification_level: number;
     features: string[];
     roles: Array<{
@@ -67,7 +67,11 @@ async function fetchGuild(id: string) {
             }
         });
 
-        const { instant_invite } = widgetResponse.data;
+        const { instant_invite, presence_count, member_count } = widgetResponse.data;
+
+        if (!instant_invite) {
+            return { success: false, error: 'No instant invite available for this guild.' };
+        }
 
         // Instant invite ile sunucu hakkında daha fazla bilgi al
         try {
@@ -79,25 +83,12 @@ async function fetchGuild(id: string) {
 
             const { guild, channel } = inviteResponse.data;
 
-            // Fetch guild details to get member count
-            try {
-                const guildDetailsResponse = await axios.get(`https://discord.com/api/v10/guilds/${id}/widget.json`, {
-                    headers: {
-                        "Authorization": `Bot ${config.token}`
-                    }
-                });
-
-                const guildDetails = guildDetailsResponse.data;
-
-                return {
-                    success: true,
-                    guild: { ...guild, instant_invite, member_count: guildDetails.member_count }, // Üye sayısını ekledik
-                    channel,
-                    code: instant_invite
-                };
-            } catch (err) {
-                return { success: false, error: 'The guild details could not be retrieved!' };
-            }
+            return {
+                success: true,
+                guild: { ...guild, instant_invite, member_count: member_count ?? presence_count },
+                channel,
+                code: instant_invite
+            };
         } catch (err) {
             return { success: false, error: 'The widget invite could not be retrieved!' };
         }
@@ -129,7 +120,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         user = response.data;
     } catch (err) {
         console.error('Error fetching user:', handleError(err));
-        user = null;
     }
 
     if (user) {
@@ -178,7 +168,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 }
             } catch (err) {
                 console.error('Error fetching presence:', handleError(err));
-                // Presence hatalarını şimdilik görmezden gel
             }
         }
 
@@ -231,7 +220,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 icon,
                 banner,
                 presence_count: guild.presence_count,
-                member_count: guild.member_count, // Üye sayısını ekledik
+                member_count: guild.member_count,
                 verification_level: guild.verification_level,
                 features: guild.features,
                 roles: guild.roles,
