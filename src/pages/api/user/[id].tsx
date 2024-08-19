@@ -39,7 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
         const response = await axios.get(`https://discord.com/api/v10/users/${id}`, {
             headers: {
-                "Authorization": `Bot ${config.token}`
+                "Authorization": `${config.token}`
             }
         });
         user = response.data;
