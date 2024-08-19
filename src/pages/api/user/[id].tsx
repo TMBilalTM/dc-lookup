@@ -1,12 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import axios from 'axios';
 import config from '../../../../project.config';
-// Ensure your Discord bot token is stored in a safe place, such as an environment variable
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
-
-
 
   try {
     // Fetch data from the Discord API
@@ -29,7 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       ok: true,
       data,
     });
-  } catch (error) {
+  } catch (error: any) {
     // Handle specific Discord API errors
     if (error.response && error.response.status === 404) {
       return res.status(404).json({
