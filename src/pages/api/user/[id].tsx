@@ -121,11 +121,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Kullanıcı bilgilerini çek
     let user: DiscordUser | null = null;
     try {
-        const response = await axios.get(`https://discord.com/api/v10/users/${id}`, {
-            headers: {
-                "Authorization": `Bot ${config.token}`
-            }
-        });
+         const request = await axios({
+                method: `get`,
+                url: `https://discord.com/api/v10/users/${id}`,
+                headers: {
+                    'Authorization': `Bot ${config.token}`
+                }
+            });
+
         user = response.data;
     } catch (err) {
         console.error('Error fetching user:', handleError(err));
