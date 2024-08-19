@@ -48,6 +48,7 @@ interface DiscordPresence {
         name: string;
         state?: string;
     }>;
+    status: string;
 }
 
 // Hata işleme fonksiyonu
@@ -114,7 +115,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
         const response = await axios.get(`https://discord.com/api/v10/users/${id}`, {
             headers: {
-                "Authorization": `${config.token}`
+                "Authorization": `Bot ${config.token}`
             }
         });
         user = response.data;
@@ -160,8 +161,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         "Authorization": `Bot ${config.token}`
                     }
                 });
-                
-                // Check if the member exists in the guild
+
+                // Üyenin var olup olmadığını kontrol et
                 if (presenceResponse.data) {
                     const presence: DiscordPresence = presenceResponse.data;
 
@@ -171,10 +172,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     }
                 } else {
                     console.warn(`User ${id} not found in guild ${guildId}`);
+                    return res.status(404).json({ ok: false, msg: 'User not found in the guild.' });
                 }
             } catch (err) {
                 console.error('Error fetching presence:', handleError(err));
-                // No need to throw an error if presence is not found, just continue
+                return res.status(500).json({ ok: false, msg: 'Error fetching user presence.' });
             }
         }
 
