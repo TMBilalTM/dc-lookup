@@ -160,14 +160,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         "Authorization": `Bot ${config.token}`
                     }
                 });
-                const presence: DiscordPresence = presenceResponse.data;
+                
+                // Check if the member exists in the guild
+                if (presenceResponse.data) {
+                    const presence: DiscordPresence = presenceResponse.data;
 
-                if (presence && presence.activities) {
-                    playing = presence.activities.find(activity => activity.type === 0)?.name ?? null;
-                    statusMessage = presence.activities.find(activity => activity.type === 4)?.state ?? null;
+                    if (presence.activities) {
+                        playing = presence.activities.find(activity => activity.type === 0)?.name ?? null;
+                        statusMessage = presence.activities.find(activity => activity.type === 4)?.state ?? null;
+                    }
+                } else {
+                    console.warn(`User ${id} not found in guild ${guildId}`);
                 }
             } catch (err) {
                 console.error('Error fetching presence:', handleError(err));
+                // No need to throw an error if presence is not found, just continue
             }
         }
 
