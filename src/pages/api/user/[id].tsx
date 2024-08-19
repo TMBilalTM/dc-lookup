@@ -121,7 +121,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Kullanıcı bilgilerini çek
     let user: DiscordUser | null = null;
     try {
-         const request = await axios({
+         const response = await axios({
                 method: `get`,
                 url: `https://discord.com/api/v10/users/${id}`,
                 headers: {
