@@ -6,12 +6,7 @@ import config from '../../../../project.config';
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
 
-  if (!DISCORD_TOKEN) {
-    return res.status(500).json({
-      ok: false,
-      message: 'Discord token not configured properly.',
-    });
-  }
+
 
   try {
     // Fetch data from the Discord API
