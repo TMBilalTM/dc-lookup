@@ -2,7 +2,6 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import axios from 'axios';
 import config from '../../../../project.config';
 // Ensure your Discord bot token is stored in a safe place, such as an environment variable
-const DISCORD_TOKEN = ${config.token};
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
@@ -18,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Fetch data from the Discord API
     const response = await axios.get(`https://discord.com/api/v10/users/${id}`, {
       headers: {
-        Authorization: `Bot ${DISCORD_TOKEN}`,
+        Authorization: `Bot ${config.token}`,
       },
     });
 
