@@ -244,4 +244,3 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return res.status(400).json({ ok: false, msg: 'User or Guild not found' });
 }
-Arama yapılmıyor. Kodu düzelt mantığı bozmadan
