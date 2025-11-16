@@ -1,50 +1,59 @@
 # 🔍 DC Lookup
 
-Discord kullanıcılarını ID üzerinden arayıp; kullanıcı adı, avatar, banner ve profil bilgilerini hızlı bir şekilde görüntüleyen modern bir lookup uygulaması.
+Discord kullanıcı ve sunucularını ID üzerinden çözüp; avatar, banner, rozetler, durum mesajı ve sunucu widget verilerini tek sayfada gösteren modern lookup uygulaması.
 
-> ⚡ **Gerçek zamanlı Discord API** entegrasyonu  
-> 🎨 Next.js + Tailwind ile modern ve responsive UI  
-> 🔐 Rate-limit korumalı istek yapısı
+> ⚡ **Gerçek zamanlı Discord REST / Widget API entegrasyonu**  
+> 📚 **Kalıcı arama geçmişi + Keşfet (Discovery) listesi**  
+> 🌓 **Dark mode + DarkReader ile otomatik tema filtresi**
 
 ---
 
-## ✨ Özellikler
+## ✨ Öne Çıkanlar
 
-- 🔎 **Discord ID ile kullanıcı arama**
-- 🖼️ **Avatar & Banner otomatik çekme**
-- 🪪 **Kullanıcı adı / global username gösterimi**
-- ⚡ **Gerçek zamanlı Discord REST API bağlantısı**
-- 🎨 **Modern tasarım & responsive arayüz**
-- 🚫 **Hata yönetimi & geçersiz ID uyarıları**
-- 🔐 **Rate limit dostu lightweight API istekleri**
+- 🔎 **Kullanıcı ID Arama:** Avatar, banner, global username, rozetler ve aktivite bilgileri.
+- 🏷️ **Sunucu Çözümleme:** Widget/i davet verileriyle üye sayıları, doğrulama seviyeleri ve açıklamalar.
+- 🗂️ **Keşfet (kesfet.tsx):** Widget’ı açık sunucular kalıcı olarak `data/discovery-guilds.json` dosyasında tutulur ve UI’de kartlar halinde listelenir.
+- 📜 **Arama Geçmişi:** `historyStore.ts` ile son bakılan kullanıcı/sunucu kayıtları gösterilir.
+- 🌙 **Tema Senkronizasyonu:** Light/dark tercihi LocalStorage’da saklanır, DarkReader karanlık modda otomatik aktif olur.
+- 🛡️ **Hata Yönetimi:** Discord ve japi.rest istekleri için anlamlı mesajlar, rate-limit kontrollü istek akışı.
 
 ---
 
 ## 🧱 Teknoloji Yığını
 
 | Teknoloji | Açıklama |
-|----------|----------|
-| **Next.js 14+** | App Router ile modern full-stack yapı |
-| **TypeScript** | Tip güvenli geliştirme |
-| **Tailwind CSS** | Hızlı ve modern stil altyapısı |
-| **Discord REST API** | Kullanıcı verilerini almak için |
-| **shadcn/ui** (opsiyonel) | Modern component seti |
+|-----------|----------|
+| **Next.js 14 (Pages Router)** | API routes + React bileşenleri aynı projede |
+| **React 18 & TypeScript** | Tip güvenli modern UI |
+| **Tailwind CSS** | Tasarım sistemi ve hızlı stiller |
+| **Axios** | Discord REST çağrıları |
+| **DarkReader** | Karanlık tema için dinamik filtre |
+| **Discord REST & Widget API** | Kullanıcı ve sunucu verileri |
 
 ---
 
-## 📁 Proje Yapısı
+## 📁 Proje Yapısı (özet)
 
 ```txt
 dc-lookup/
-├─ public/              # Statik dosyalar
+├─ data/
+│  └─ discovery-guilds.json        # Keşfet listesi kalıcı deposu
+├─ public/
+│  └─ png/boosts/...               # Statik varlıklar
 ├─ src/
-│  ├─ app/              # Next.js App Router sayfaları
-│  ├─ components/       # UI bileşenleri
-│  ├─ lib/              # API helper'ları, araç fonksiyonları
-│  └─ styles/           # Global stiller
+│  ├─ pages/
+│  │  ├─ index.tsx                 # Ana lookup arayüzü
+│  │  ├─ history.tsx               # Geçmiş sayfası
+│  │  ├─ kesfet.tsx                # Sunucu keşfet sayfası
+│  │  └─ api/
+│  │      ├─ user/[id].tsx         # Kullanıcı/sunucu lookup API’si
+│  │      └─ discovery.ts          # Keşfet verilerini dönen API
+│  └─ styles/globals.css           # Temel stiller
+├─ discoveryStore.ts               # Keşfet depolama yardımcıları
+├─ historyStore.ts                 # Arama geçmişi yardımı
+├─ project.config.ts               # Discord bot token yükleyicisi
 ├─ tailwind.config.ts
 ├─ next.config.mjs
-├─ package.json
 └─ README.md
 ```
 
@@ -63,32 +72,25 @@ cd dc-lookup
 
 ```bash
 npm install
-# veya
-yarn
-# veya
-pnpm install
 ```
 
-### 3️⃣ Çalıştır
+### 3️⃣ Ortam değişkenini ayarla
+
+Kök dizinde bir `.env` dosyası oluşturup bot token’ınızı girin:
+
+```env
+DISCORD_BOT_TOKEN=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+```
+
+Bu değer `project.config.ts` üzerinden otomatik okunur; tanımlı değilse uygulama çalışırken hata verir.
+
+### 4️⃣ Geliştirme sunucusunu başlat
 
 ```bash
 npm run dev
 ```
 
-Tarayıcıda aç:  
-👉 http://localhost:3000
-
----
-
-## ⚙️ Ortam Değişkenleri
-
-Discord API kullanımında aşağıdaki değişkene ihtiyaç duyulabilir:
-
-```env
-DISCORD_TOKEN=your_bot_or_user_token
-```
-
-> Not: Bazı endpoint’ler token istemese de rate limit ve gelişmiş profil verileri için önerilir.
+Tarayıcı: <http://localhost:3000>
 
 ---
 
@@ -107,14 +109,20 @@ DISCORD_TOKEN=your_bot_or_user_token
 
 ---
 
+## 🔐 Güvenlik Notları
+
+- `.env` varsayılan olarak `.gitignore` içinde; token’ınızı repo dışına taşımayın.
+- Keşfet ve geçmiş verileri `data/` dizinindeki JSON dosyalarında tutulur. Paylaşmadan önce içeriği temizleyebilirsiniz.
+- Dark mode’da DarkReader tüm sitenin renk paletini filtreler; özel durumlar için `_app.tsx` içindeki `darkreader.enable` ayarlarını değiştirebilirsiniz.
+
+---
+
 ## 🗺️ Roadmap
 
-- [ ] Kullanıcı banner URL fallback sistemi  
-- [ ] Bot hesaplarını özel şekilde işaretleme  
-- [ ] Badge görüntüleme (HypeSquad, Nitro, Boost vb.)  
-- [ ] UI animasyonları & skeleton yükleme  
-- [ ] API cache sistemi  
-- [ ] Mobil daha optimize arayüz  
+- [ ] Keşfet kartlarında sunucu badge/bot ikonlarını gösterme  
+- [ ] Lookup sonuçlarını export edebilme  
+- [ ] Rate limit ve hata metriklerini UI’da vurgulama  
+- [ ] Mobil deneyim için ek düzenlemeler  
 
 ---
 
@@ -137,14 +145,14 @@ DISCORD_TOKEN=your_bot_or_user_token
 ## 📄 Lisans
 
 Bu proje **MIT Lisansı** ile lisanslanmıştır.  
-Detaylı bilgi için → `LICENSE`
+Detay: `LICENSE`
 
 ---
 
 ## 👤 İletişim
 
 **@TMBilalTM**  
-GitHub: https://github.com/TMBilalTM  
+GitHub: <https://github.com/TMBilalTM>
 
 ---
 
