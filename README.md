@@ -148,4 +148,3 @@ GitHub: https://github.com/TMBilalTM
 
 ---
 
-> İstersen bu README’ye **badge**, **banner görseli**, veya **demo GIF** de ekleyebilirim.
