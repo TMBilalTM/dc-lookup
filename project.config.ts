@@ -1,5 +1,5 @@
 export function getDiscordBotToken(): string {
-    const token = process.env.DISCORD_BOT_TOKEN;
+    const token = process.env.BOT_TOKEN;
 
     if (!token) {
         throw new Error('DISCORD_BOT_TOKEN environment variable is not defined.');
