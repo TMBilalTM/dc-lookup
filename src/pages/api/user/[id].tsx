@@ -374,6 +374,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         addToHistory({ id: guild.id, name: guild.name, avatar: icon, type: 'Guild' });
 
+        let discoveryPersisted = true;
         try {
             await upsertDiscoveryGuild({
                 id: guild.id,
@@ -390,8 +391,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 premiumSubscriptionCount: (guild as any).premium_subscription_count ?? null
             });
         } catch (storeError) {
+            discoveryPersisted = false;
             console.error('Failed to persist discovery guild entry:', storeError);
-            return res.status(500).json({ ok: false, msg: 'Sunucu keşif kaydı oluşturulamadı. Lütfen tekrar deneyin.' });
         }
 
         return res.status(200).json({
@@ -410,7 +411,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 emojis: guild.emojis,
                 badges: mostImportantBadge ? [mostImportantBadge] : [],
                 instant_invite: guild.instant_invite,
-                description: guild.description ?? null
+                description: guild.description ?? null,
+                discoveryPersisted
             }
         });
     }

@@ -1,11 +1,14 @@
-export function getDiscordBotToken(): string {
-    const token = process.env.BOT_TOKEN;
+const TOKEN_ENV_KEYS = ['DISCORD_BOT_TOKEN', 'BOT_TOKEN'] as const;
 
-    if (!token) {
-        throw new Error('DISCORD_BOT_TOKEN environment variable is not defined.');
+export function getDiscordBotToken(): string {
+    for (const key of TOKEN_ENV_KEYS) {
+        const candidate = process.env[key];
+        if (candidate) {
+            return candidate;
+        }
     }
 
-    return token;
+    throw new Error('Discord bot token missing. Set DISCORD_BOT_TOKEN (preferred) or BOT_TOKEN in your environment.');
 }
 
 const config = {

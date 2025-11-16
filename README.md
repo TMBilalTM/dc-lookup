@@ -83,6 +83,7 @@ DISCORD_BOT_TOKEN=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ```
 
 Bu değer `project.config.ts` üzerinden otomatik okunur; tanımlı değilse uygulama çalışırken hata verir.
+> `BOT_TOKEN` değişkeni de geriye dönük uyumluluk için desteklenir ancak `DISCORD_BOT_TOKEN` önerilir.
 
 ### 4️⃣ Geliştirme sunucusunu başlat
 
@@ -112,7 +113,7 @@ Tarayıcı: <http://localhost:3000>
 ## 🔐 Güvenlik Notları
 
 - `.env` varsayılan olarak `.gitignore` içinde; token’ınızı repo dışına taşımayın.
-- Keşfet ve geçmiş verileri `data/` dizinindeki JSON dosyalarında tutulur. Paylaşmadan önce içeriği temizleyebilirsiniz.
+- Keşfet ve geçmiş verileri `data/` dizinindeki JSON dosyalarında tutulur. Ortamınız yazma izinlerine sahip değilse uygulama otomatik olarak geçici (`/tmp`) dizine düşer ve veriler kalıcı olmaz.
 - Dark mode’da DarkReader tüm sitenin renk paletini filtreler; özel durumlar için `_app.tsx` içindeki `darkreader.enable` ayarlarını değiştirebilirsiniz.
 
 ---

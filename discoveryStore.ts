@@ -1,8 +1,17 @@
 import { promises as fs } from 'fs';
+import os from 'os';
 import path from 'path';
 import type { DiscoveryGuildSummary } from './types/discovery';
 
-const STORE_PATH = path.join(process.cwd(), 'data', 'discovery-guilds.json');
+const PRIMARY_STORE_PATH = process.env.DISCOVERY_STORE_PATH
+    ?? path.join(process.cwd(), 'data', 'discovery-guilds.json');
+const TEMP_DIRECTORY = process.env.DISCOVERY_STORE_TMP_DIR ?? os.tmpdir();
+const FALLBACK_STORE_PATH = process.env.DISCOVERY_STORE_FALLBACK_PATH
+    ?? path.join(TEMP_DIRECTORY, 'dc-lookup', 'discovery-guilds.json');
+
+let resolvedStorePath: string | null = null;
+let attemptedPrimary = false;
+let attemptedFallback = false;
 
 interface DiscoveryGuildUpsertPayload {
     id: string;
@@ -19,32 +28,86 @@ interface DiscoveryGuildUpsertPayload {
     premiumSubscriptionCount?: number | null;
 }
 
-async function ensureStoreFile() {
+function isReadOnlyFsError(error: unknown) {
+    if (!error || typeof error !== 'object') return false;
+    const code = (error as NodeJS.ErrnoException).code;
+    return code === 'EROFS' || code === 'EACCES' || code === 'EPERM';
+}
+
+async function ensureStoreFile(targetPath: string) {
+    await fs.mkdir(path.dirname(targetPath), { recursive: true });
     try {
-        await fs.access(STORE_PATH);
+        await fs.access(targetPath);
     } catch {
-        await fs.mkdir(path.dirname(STORE_PATH), { recursive: true });
-        await fs.writeFile(STORE_PATH, '[]', 'utf-8');
+        await fs.writeFile(targetPath, '[]', 'utf-8');
     }
 }
 
+async function resolveStorePath(): Promise<string | null> {
+    if (resolvedStorePath) return resolvedStorePath;
+
+    if (!attemptedPrimary) {
+        attemptedPrimary = true;
+        try {
+            await ensureStoreFile(PRIMARY_STORE_PATH);
+            resolvedStorePath = PRIMARY_STORE_PATH;
+            return resolvedStorePath;
+        } catch (error) {
+            if (isReadOnlyFsError(error)) {
+                console.warn('Discovery store primary path is read-only. Falling back to tmp.');
+            } else {
+                console.warn('Discovery store primary path unavailable:', error);
+            }
+        }
+    }
+
+    if (!attemptedFallback && FALLBACK_STORE_PATH) {
+        attemptedFallback = true;
+        try {
+            await ensureStoreFile(FALLBACK_STORE_PATH);
+            resolvedStorePath = FALLBACK_STORE_PATH;
+            console.warn(`Discovery store using fallback path: ${FALLBACK_STORE_PATH}`);
+            return resolvedStorePath;
+        } catch (error) {
+            console.error('Discovery store fallback path unavailable:', error);
+        }
+    }
+
+    return null;
+}
+
 async function readStore(): Promise<DiscoveryGuildSummary[]> {
-    await ensureStoreFile();
+    const targetPath = await resolveStorePath();
+    if (!targetPath) return [];
 
     try {
-        const raw = await fs.readFile(STORE_PATH, 'utf-8');
+        const raw = await fs.readFile(targetPath, 'utf-8');
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) {
             return parsed as DiscoveryGuildSummary[];
         }
         return [];
-    } catch {
+    } catch (error) {
+        console.error('Failed to read discovery store:', error);
         return [];
     }
 }
 
 async function writeStore(data: DiscoveryGuildSummary[]) {
-    await fs.writeFile(STORE_PATH, JSON.stringify(data, null, 2), 'utf-8');
+    const targetPath = await resolveStorePath();
+    if (!targetPath) {
+        throw new Error('DISCOVERY_STORE_UNAVAILABLE');
+    }
+
+    try {
+        await fs.writeFile(targetPath, JSON.stringify(data, null, 2), 'utf-8');
+    } catch (error) {
+        if (isReadOnlyFsError(error) && targetPath !== FALLBACK_STORE_PATH) {
+            resolvedStorePath = null;
+            return writeStore(data);
+        }
+        throw error;
+    }
 }
 
 export async function getDiscoveryGuilds(): Promise<DiscoveryGuildSummary[]> {
