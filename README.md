@@ -1,40 +1,151 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 🔍 DC Lookup
 
-## Getting Started
+Discord kullanıcılarını ID üzerinden arayıp; kullanıcı adı, avatar, banner ve profil bilgilerini hızlı bir şekilde görüntüleyen modern bir lookup uygulaması.
 
-First, run the development server:
+> ⚡ **Gerçek zamanlı Discord API** entegrasyonu  
+> 🎨 Next.js + Tailwind ile modern ve responsive UI  
+> 🔐 Rate-limit korumalı istek yapısı
+
+---
+
+## ✨ Özellikler
+
+- 🔎 **Discord ID ile kullanıcı arama**
+- 🖼️ **Avatar & Banner otomatik çekme**
+- 🪪 **Kullanıcı adı / global username gösterimi**
+- ⚡ **Gerçek zamanlı Discord REST API bağlantısı**
+- 🎨 **Modern tasarım & responsive arayüz**
+- 🚫 **Hata yönetimi & geçersiz ID uyarıları**
+- 🔐 **Rate limit dostu lightweight API istekleri**
+
+---
+
+## 🧱 Teknoloji Yığını
+
+| Teknoloji | Açıklama |
+|----------|----------|
+| **Next.js 14+** | App Router ile modern full-stack yapı |
+| **TypeScript** | Tip güvenli geliştirme |
+| **Tailwind CSS** | Hızlı ve modern stil altyapısı |
+| **Discord REST API** | Kullanıcı verilerini almak için |
+| **shadcn/ui** (opsiyonel) | Modern component seti |
+
+---
+
+## 📁 Proje Yapısı
+
+```txt
+dc-lookup/
+├─ public/              # Statik dosyalar
+├─ src/
+│  ├─ app/              # Next.js App Router sayfaları
+│  ├─ components/       # UI bileşenleri
+│  ├─ lib/              # API helper'ları, araç fonksiyonları
+│  └─ styles/           # Global stiller
+├─ tailwind.config.ts
+├─ next.config.mjs
+├─ package.json
+└─ README.md
+```
+
+---
+
+## 🚀 Kurulum
+
+### 1️⃣ Depoyu klonla
+
+```bash
+git clone https://github.com/TMBilalTM/dc-lookup.git
+cd dc-lookup
+```
+
+### 2️⃣ Bağımlılıkları yükle
+
+```bash
+npm install
+# veya
+yarn
+# veya
+pnpm install
+```
+
+### 3️⃣ Çalıştır
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Tarayıcıda aç:  
+👉 http://localhost:3000
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+---
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+## ⚙️ Ortam Değişkenleri
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+Discord API kullanımında aşağıdaki değişkene ihtiyaç duyulabilir:
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+```env
+DISCORD_TOKEN=your_bot_or_user_token
+```
 
-## Learn More
+> Not: Bazı endpoint’ler token istemese de rate limit ve gelişmiş profil verileri için önerilir.
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🧪 Script’ler
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+```jsonc
+{
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  }
+}
+```
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🗺️ Roadmap
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+- [ ] Kullanıcı banner URL fallback sistemi  
+- [ ] Bot hesaplarını özel şekilde işaretleme  
+- [ ] Badge görüntüleme (HypeSquad, Nitro, Boost vb.)  
+- [ ] UI animasyonları & skeleton yükleme  
+- [ ] API cache sistemi  
+- [ ] Mobil daha optimize arayüz  
+
+---
+
+## 🤝 Katkıda Bulunma
+
+1. Forkla  
+2. Branch aç  
+   ```bash
+   git checkout -b feature/yeni-ozellik
+   ```
+3. Commit et  
+   ```bash
+   git commit -m "feat: yeni özellik eklendi"
+   ```
+4. Push et  
+5. PR aç
+
+---
+
+## 📄 Lisans
+
+Bu proje **MIT Lisansı** ile lisanslanmıştır.  
+Detaylı bilgi için → `LICENSE`
+
+---
+
+## 👤 İletişim
+
+**@TMBilalTM**  
+GitHub: https://github.com/TMBilalTM  
+
+---
+
+> İstersen bu README’ye **badge**, **banner görseli**, veya **demo GIF** de ekleyebilirim.
