@@ -10,14 +10,27 @@ export default function Home() {
   const [data, setData] = useState<any>(null);
 
   async function fetchData() {
+    const genericError = 'Discord bu ID hakkında bilgi döndürmedi. Bot tokenini ve sunucu widget ayarlarını kontrol edin.';
+
     try {
       const response = await axios.get(`/api/user/${value}`);
       if (!response.data.ok) {
-        throw new Error('User or Guild not found! The server widget system may not be turned on.');
+        throw new Error(response.data.msg || genericError);
       }
       return response.data.data;
     } catch (error) {
-      throw new Error('User or Guild not found! The server widget system may not be turned on.');
+      if (axios.isAxiosError(error)) {
+        const serverMessage = error.response?.data?.msg;
+        if (serverMessage) {
+          throw new Error(serverMessage);
+        }
+      }
+
+      if (error instanceof Error) {
+        throw new Error(error.message || genericError);
+      }
+
+      throw new Error(genericError);
     }
   }
 
@@ -25,6 +38,31 @@ export default function Home() {
     const date = new Date(dateString);
     const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long', year: 'numeric' };
     return date.toLocaleDateString('tr-TR', options);
+  };
+
+  const formatNumber = (value?: number | null) => {
+    if (value === null || value === undefined) return 'Bilinmiyor';
+    return value.toLocaleString('tr-TR');
+  };
+
+  const verificationLabels: Record<number, string> = {
+    0: 'Hiçbiri',
+    1: 'Düşük',
+    2: 'Orta',
+    3: 'Yüksek',
+    4: 'En Yüksek'
+  };
+
+  const featureLabels: Record<string, string> = {
+    PARTNERED: 'Partner',
+    VERIFIED: 'Doğrulanmış',
+    COMMUNITY: 'Topluluk',
+    COMMUNITY2: 'Topluluk+',
+    DISCOVERABLE: 'Keşfedilebilir',
+    NEWS: 'Haber Kanalı',
+    ANIMATED_BANNER: 'Animasyonlu Afiş',
+    INVITE_SPLASH: 'Özel Davet',
+    BANNER: 'Sunucu Afişi'
   };
 
   const Badge = ({ badge }: any) => {
@@ -52,6 +90,7 @@ export default function Home() {
     </div>
   );
 
+
   async function getData() {
     if (!value) {
       toast.error('Please enter a user or guild id.');
@@ -64,7 +103,6 @@ export default function Home() {
         loading: 'Searching on Discord...',
         success: (data) => {
           setData(data);
-          console.log(data)
           return 'User or Guild found!';
         },
         error: (error) => {
@@ -152,43 +190,79 @@ export default function Home() {
           ) : (
             <div className="flex flex-col items-start justify-start w-full">
               {data?.banner ? (
-                <div className="relative w-full mt-4 rounded-xl h-[10rem] md:h-[15rem]">
+                <div className="relative w-full mt-4 rounded-xl h-[10rem] md:h-[15rem] overflow-hidden">
                   <img
                     src={data.banner}
-                    alt="Guild Banner"
+                    alt="Sunucu Afişi"
                     className="w-full h-full object-cover rounded-xl"
                   />
-                  <div className="absolute bottom-2 right-2 flex gap-1">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <div className="absolute bottom-3 right-3 flex gap-2">
                     <BadgeList badges={data?.badges || []} />
                   </div>
                 </div>
               ) : null}
 
-              {data?.icon ? (
+              <div className="flex items-start gap-4 mt-6 w-full">
                 <img
-                  src={`${data.icon}`}
-                  alt="Guild Icon"
-                  className="w-20 h-20 rounded-full mt-4"
+                  src={data?.icon ?? 'https://cdn.discordapp.com/embed/avatars/0.png'}
+                  alt="Sunucu Simgesi"
+                  className="w-20 h-20 rounded-2xl border border-white/50 shadow-lg"
                 />
-              ) : (
-                <img
-                  src="https://cdn.discordapp.com/embed/avatars/0.png"
-                  alt="Guild Icon"
-                  className="w-20 h-20 rounded-full mt-4"
-                />
-              )}
-
-              <div className="flex items-center mt-4">
-                <div className="ml-4">
-                  <p className="text-[#0e172b]/90 font-semibold tracking-tighter text-xl">{data?.name ?? "Example Guild"}</p>
-                  <p className="text-[#0e172b]/60 font-medium tracking-tighter text-sm">Guild</p>
-
+                <div className="flex-1">
+                  <p className="text-2xl font-semibold text-[#0e172b] tracking-tight">{data?.name ?? 'Sunucu'}</p>
+                  <p className="text-sm text-[#0e172b]/60 mt-1">ID: {data?.id}</p>
+                  {data?.verification_level !== undefined && (
+                    <span className="inline-flex mt-2 items-center gap-2 rounded-full bg-white/70 px-3 py-1 text-xs font-medium text-[#0e172b]">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                      Doğrulama: {verificationLabels[data.verification_level] ?? 'Bilinmiyor'}
+                    </span>
+                  )}
                 </div>
               </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full mt-6">
+                <div className="rounded-2xl bg-white/70 p-4">
+                  <p className="text-xs uppercase tracking-wide text-[#0e172b]/60">Üye</p>
+                  <p className="text-2xl font-semibold text-[#0e172b]">{formatNumber(data?.member_count)}</p>
+                </div>
+                <div className="rounded-2xl bg-white/70 p-4">
+                  <p className="text-xs uppercase tracking-wide text-[#0e172b]/60">Çevrim içi</p>
+                  <p className="text-2xl font-semibold text-[#0e172b]">{formatNumber(data?.presence_count)}</p>
+                </div>
+                <div className="rounded-2xl bg-white/70 p-4">
+                  <p className="text-xs uppercase tracking-wide text-[#0e172b]/60">Rozet</p>
+                  {data?.badges?.length ? (
+                    <div className="flex gap-2 mt-2">
+                      <BadgeList badges={data.badges} />
+                    </div>
+                  ) : (
+                    <p className="text-sm text-[#0e172b]/60 mt-2">Rozet bulunamadı</p>
+                  )}
+                </div>
+              </div>
+
+              {data?.features?.length ? (
+                <div className="w-full mt-6">
+                  <p className="text-sm font-medium text-[#0e172b]/70 mb-2">Aktif Özellikler</p>
+                  <div className="flex flex-wrap gap-2">
+                    {data.features.map((feature: string) => (
+                      <span key={feature} className="px-3 py-1 rounded-full bg-blue-500/10 text-blue-500 text-xs font-medium">
+                        {featureLabels[feature] ?? feature}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
               <div className="h-px w-full bg-gray-300 mt-7" />
-              <Link href={`${data?.instant_invite}`} target="_blank">
-                <button className="mt-10 bg-blue-500/10 transition-all hover:bg-blue-500/20 text-sm duration-200 p-2 rounded-md text-blue-500 font-medium tracking-tighter">View on Discord</button>
-              </Link>
+              {data?.instant_invite ? (
+                <Link href={`${data.instant_invite}`} target="_blank">
+                  <button className="mt-10 bg-blue-500/10 transition-all hover:bg-blue-500/20 text-sm duration-200 p-3 rounded-md text-blue-500 font-medium tracking-tighter w-full">Discord&rsquo;da Görüntüle</button>
+                </Link>
+              ) : (
+                <button disabled className="mt-10 bg-gray-400/10 text-sm duration-200 p-3 rounded-md text-gray-400 font-medium tracking-tighter cursor-not-allowed w-full">Bu sunucu davet paylaşmıyor</button>
+              )}
             </div>
           )}
         </motion.div>
@@ -196,7 +270,7 @@ export default function Home() {
         <div className="flex flex-col items-center justify-start w-full md:w-[42rem] h-auto bg-gray-200/40 mt-12 rounded-3xl p-4 md:p-8">
           <div className="flex flex-col items-start justify-start w-full">
             <img
-              src='https://i.dfr.gg/banniere-discord-go-live.png'
+              src='https://i.redd.it/pyeuy7iyfw961.png'
               alt="Placeholder"
               className="w-full mt-4 rounded-xl object-cover h-[10rem] md:h-[15rem]"
             />
